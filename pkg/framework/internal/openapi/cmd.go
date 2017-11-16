@@ -25,13 +25,13 @@ type cmdBuilderImpl struct {
 	seen      map[string]sets.String
 }
 
-func (builder *cmdBuilderImpl) BuildCmd(resource v1.APIResource) (*cobra.Command, error) {
+func (builder *cmdBuilderImpl) buildCmd(resource v1.APIResource) (*cobra.Command, error) {
 	gvk := schema.GroupVersionKind{resource.Group, resource.Version, resource.Kind}
 	if builder.resources.LookupResource(gvk) == nil {
 		return nil, fmt.Errorf("No openapi definition found for %+v", gvk)
 	}
 
-	if builder.Seen(resource) {
+	if builder.done(resource) {
 		return nil, fmt.Errorf("Already built command for %+v", gvk)
 	}
 	builder.add(resource)

@@ -23,7 +23,7 @@ import (
 )
 
 func (builder *cmdBuilderImpl) BuildCommands() ([]*cobra.Command, error) {
-	list, err := builder.ListResources()
+	list, err := builder.listResources()
 	if err != nil {
 		panic(err)
 	}
@@ -32,14 +32,14 @@ func (builder *cmdBuilderImpl) BuildCommands() ([]*cobra.Command, error) {
 	parentCmds := map[string]*cobra.Command{}
 
 	for _, resource := range list {
-		if builder.IsCmd(resource) {
+		if builder.isCmd(resource) {
 			// Don't expose multiple versions of the same resource
-			if builder.Seen(resource) {
+			if builder.done(resource) {
 				continue
 			}
 
 			// Setup the command
-			cmd, err := builder.BuildCmd(resource)
+			cmd, err := builder.buildCmd(resource)
 			if err != nil {
 				panic(err)
 			}
@@ -54,13 +54,13 @@ func (builder *cmdBuilderImpl) BuildCommands() ([]*cobra.Command, error) {
 			parent.AddCommand(cmd)
 
 			// Build the flags
-			request, err := builder.BuildFlags(cmd, resource)
+			request, err := builder.buildFlags(cmd, resource)
 			if err != nil {
 				panic(err)
 			}
 
 			// Build the run function
-			builder.BuildRun(cmd, resource, request)
+			builder.buildRun(cmd, resource, request)
 		}
 	}
 

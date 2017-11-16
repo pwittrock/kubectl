@@ -24,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-func (builder *cmdBuilderImpl) IsCmd(resource v1.APIResource) bool {
+func (builder *cmdBuilderImpl) isCmd(resource v1.APIResource) bool {
 	if !strings.Contains(resource.Name, "/") {
 		return false
 	}
@@ -38,7 +38,7 @@ func (builder *cmdBuilderImpl) IsCmd(resource v1.APIResource) bool {
 	return true
 }
 
-func (builder *cmdBuilderImpl) Seen(resource v1.APIResource) bool {
+func (builder *cmdBuilderImpl) done(resource v1.APIResource) bool {
 	parts := strings.Split(resource.Name, "/")
 	kind := parts[0]
 	operation := parts[1]

@@ -11,7 +11,7 @@ import (
 )
 
 // FlagBuilder returns a new request body parsed from flag values
-func (builder *cmdBuilderImpl) BuildFlags(cmd *cobra.Command, resource v1.APIResource) (map[string]interface{}, error) {
+func (builder *cmdBuilderImpl) buildFlags(cmd *cobra.Command, resource v1.APIResource) (map[string]interface{}, error) {
 	gvk := schema.GroupVersionKind{resource.Group, resource.Version, resource.Kind}
 
 	apiSchema := builder.resources.LookupResource(gvk)
@@ -71,6 +71,7 @@ func (v *kindVisitor) newFieldVisitor(name string) *fieldVisitor {
 		name,
 		v.cmd,
 		map[string]interface{}{},
+		false,
 	}
 }
 
@@ -80,6 +81,7 @@ type fieldVisitor struct {
 	name  string
 	cmd   *cobra.Command
 	field interface{}
+	array bool
 }
 
 var whitelistedFields = sets.NewString("spec")
@@ -114,13 +116,24 @@ func (visitor *fieldVisitor) VisitPrimitive(p *openapi.Primitive) {
 	}
 
 	// Create a flag reference
-	switch p.Type {
-	case "integer":
-		visitor.field = visitor.cmd.Flags().Int32(visitor.name, 0, p.Description)
-	case "boolean":
-		visitor.field = visitor.cmd.Flags().Bool(visitor.name, false, p.Description)
-	case "string":
-		visitor.field = visitor.cmd.Flags().String(visitor.name, "", p.Description)
+	if !visitor.array {
+		switch p.Type {
+		case "integer":
+			visitor.field = visitor.cmd.Flags().Int32(visitor.name, 0, p.Description)
+		case "boolean":
+			visitor.field = visitor.cmd.Flags().Bool(visitor.name, false, p.Description)
+		case "string":
+			visitor.field = visitor.cmd.Flags().String(visitor.name, "", p.Description)
+		}
+	} else {
+		switch p.Type {
+		case "integer":
+			visitor.field = visitor.cmd.Flags().IntSlice(visitor.name, []int{}, p.Description)
+		case "boolean":
+			visitor.field = visitor.cmd.Flags().BoolSlice(visitor.name, []bool{}, p.Description)
+		case "string":
+			visitor.field = visitor.cmd.Flags().StringSlice(visitor.name, []string{}, p.Description)
+		}
 	}
 }
 
@@ -130,6 +143,12 @@ func (visitor *fieldVisitor) VisitArray(p *openapi.Array) {
 		return
 	}
 
+	fv := visitor.newFieldVisitor(visitor.name)
+	fv.array = true
+	p.SubType.Accept(fv)
+	if fv.field != nil {
+		visitor.field = fv.field
+	}
 }
 
 // VisitReference traverses references
@@ -144,6 +163,7 @@ func (v *fieldVisitor) newFieldVisitor(name string) *fieldVisitor {
 		name,
 		v.cmd,
 		nil,
+		false,
 	}
 }
 

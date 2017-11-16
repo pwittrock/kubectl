@@ -18,7 +18,7 @@ package openapi
 
 import "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-func (builder *cmdBuilderImpl) ListResources() ([]v1.APIResource, error) {
+func (builder *cmdBuilderImpl) listResources() ([]v1.APIResource, error) {
 	list := []v1.APIResource{}
 	gvs, err := builder.discovery.ServerResources()
 	if err != nil {

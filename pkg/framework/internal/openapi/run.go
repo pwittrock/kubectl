@@ -24,16 +24,18 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (builder *cmdBuilderImpl) BuildRun(cmd *cobra.Command, resource v1.APIResource, request map[string]interface{}) {
+func (builder *cmdBuilderImpl) buildRun(cmd *cobra.Command, resource v1.APIResource, request map[string]interface{}) {
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		out, _ := json.Marshal(request)
 		fmt.Printf("Request:\n%s\n", out)
 
+		// Pull the name and namespace from the request so they are added to the url path
 		meta := request["metadata"].(map[string]interface{})
 		name := meta["name"].(*string)
 		namespace := meta["namespace"].(*string)
 		fmt.Printf("P%s %s\n", *name, *namespace)
 
+		// Create the request
 		result := builder.rest.Put().
 			Prefix("apis", resource.Group, resource.Version).
 			Namespace(*namespace).
