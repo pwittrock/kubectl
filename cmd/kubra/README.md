@@ -8,5 +8,5 @@ commands.
 
 - setup a minikube cluster
 - `go install k8s.io/kubectl/cmd/kubra`
-- `kubra set scale deployments --replicas 3`
+- `kubra set scale deployments --name nginx --replicas 1`
 
