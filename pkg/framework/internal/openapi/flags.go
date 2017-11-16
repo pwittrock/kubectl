@@ -48,6 +48,11 @@ func (v *kindVisitor) getRequest() interface{} {
 }
 
 func (visitor *kindVisitor) VisitKind(k *openapi.Kind) {
+	visitor.resource["metadata"] = map[string]interface{}{
+		"name":      visitor.cmd.Flags().String("name", "", "name of the resource"),
+		"namespace": visitor.cmd.Flags().String("namespace", "default", "namespace of the resource"),
+	}
+
 	for k, v := range k.Fields {
 		if blacklistedFields.Has(k) {
 			continue

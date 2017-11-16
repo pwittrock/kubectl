@@ -17,16 +17,33 @@ limitations under the License.
 package openapi
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (builder *cmdBuilderImpl) BuildRun(cmd *cobra.Command, resource v1.APIResource, request map[string]interface{}) {
 	cmd.Run = func(cmd *cobra.Command, args []string) {
-		out, _ := yaml.Marshal(request)
-		fmt.Printf("%s\n", out)
+		out, _ := json.Marshal(request)
+		fmt.Printf("Request:\n%s\n", out)
+
+		meta := request["metadata"].(map[string]interface{})
+		name := meta["name"].(*string)
+		namespace := meta["namespace"].(*string)
+		fmt.Printf("P%s %s\n", *name, *namespace)
+
+		result := builder.rest.Put().
+			Prefix("apis", resource.Group, resource.Version).
+			Namespace(*namespace).
+			Resource(builder.resource(resource)).
+			SubResource(builder.operation(resource)).
+			Name(*name).
+			Body(out)
+
+		fmt.Printf("URL: %v\n", result.URL().Path)
+		resp, err := result.DoRaw()
+		fmt.Printf("Response:\n%s\nError: %v\n", resp, err)
 	}
 }

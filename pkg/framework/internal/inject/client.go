@@ -35,6 +35,7 @@ type Factory struct {
 	config    *rest.Config
 	discovery discovery.DiscoveryInterface
 	resources openapi.Resources
+	rest      rest.Interface
 }
 
 func NewFactory() *Factory {
@@ -74,6 +75,8 @@ func (c *Factory) inject() *rest.Config {
 		}
 
 		c.resources = resources
+
+		c.rest = clientset.RESTClient()
 	})
 	return c.config
 }
@@ -84,6 +87,10 @@ func (f *Factory) GetDiscovery() discovery.DiscoveryInterface {
 
 func (f *Factory) GetResources() openapi.Resources {
 	return f.resources
+}
+
+func (f *Factory) GetRest() rest.Interface {
+	return f.rest
 }
 
 func homeDir() string {

@@ -51,6 +51,11 @@ func (builder *cmdBuilderImpl) operation(resource v1.APIResource) string {
 	return parts[1]
 }
 
+func (builder *cmdBuilderImpl) resource(resource v1.APIResource) string {
+	parts := strings.Split(resource.Name, "/")
+	return parts[0]
+}
+
 func (builder *cmdBuilderImpl) add(resource v1.APIResource) {
 	parts := strings.Split(resource.Name, "/")
 	kind := parts[0]

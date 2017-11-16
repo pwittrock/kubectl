@@ -10,5 +10,5 @@ import (
 var factory = inject.NewFactory()
 
 func NewCmdBuilder() fw.CmdBuilder {
-	return fw.NewCmdBuilder(factory.GetResources(), factory.GetDiscovery())
+	return fw.NewCmdBuilder(factory.GetResources(), factory.GetDiscovery(), factory.GetRest())
 }
