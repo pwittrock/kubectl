@@ -20,13 +20,35 @@ import (
 	"strings"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 func (builder *cmdBuilderImpl) IsCmd(resource v1.APIResource) bool {
-	return strings.Contains(resource.Name, "/") && !strings.HasSuffix(resource.Name, "/status")
+	if !strings.Contains(resource.Name, "/") {
+		return false
+	}
+	if strings.HasSuffix(resource.Name, "/status") {
+		return false
+	}
+	gvk := schema.GroupVersionKind{resource.Group, resource.Version, resource.Kind}
+	if builder.resources.LookupResource(gvk) == nil {
+		return false
+	}
+	return true
 }
 
 func (builder *cmdBuilderImpl) Seen(resource v1.APIResource) bool {
-	return builder.seen[]
+	parts := strings.Split(resource.Name, "/")
+	kind := parts[0]
+	operation := parts[1]
+
+	return builder.seen[operation].HasAny(kind)
 }
 
+func (builder *cmdBuilderImpl) add(resource v1.APIResource) {
+	parts := strings.Split(resource.Name, "/")
+	kind := parts[0]
+	operation := parts[1]
+
+	builder.seen[operation].Insert(kind)
+}

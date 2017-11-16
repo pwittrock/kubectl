@@ -7,24 +7,30 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/client-go/discovery"
 	"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
-    "k8s.io/apimachinery/pkg/util/sets"
 )
 
 // NewFlagBuilder returns a new request builder
-func NewCmdBuilder(resources openapi.Resources) CmdBuilder {
-	return &cmdBuilderImpl{resources, map[string]sets.String{}}
+func NewCmdBuilder(resources openapi.Resources, discovery discovery.DiscoveryInterface) CmdBuilder {
+	return &cmdBuilderImpl{resources, discovery, map[string]sets.String{}}
 }
 
 type cmdBuilderImpl struct {
 	resources openapi.Resources
-    seen map[string]sets.String{}
+	discovery discovery.DiscoveryInterface
+	seen      map[string]sets.String
 }
 
 func (builder *cmdBuilderImpl) BuildCmd(resource v1.APIResource) (*cobra.Command, error) {
 	gvk := schema.GroupVersionKind{resource.Group, resource.Version, resource.Kind}
 	if builder.resources.LookupResource(gvk) == nil {
 		return nil, fmt.Errorf("No openapi definition found for %+v", gvk)
+	}
+
+	if builder.Seen(resource) {
+		return nil, fmt.Errorf("Already built command for %+v", gvk)
 	}
 
 	parts := strings.Split(resource.Name, "/")
