@@ -21,6 +21,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 func (builder *cmdBuilderImpl) IsCmd(resource v1.APIResource) bool {
@@ -45,10 +46,18 @@ func (builder *cmdBuilderImpl) Seen(resource v1.APIResource) bool {
 	return builder.seen[operation].HasAny(kind)
 }
 
+func (builder *cmdBuilderImpl) operation(resource v1.APIResource) string {
+	parts := strings.Split(resource.Name, "/")
+	return parts[1]
+}
+
 func (builder *cmdBuilderImpl) add(resource v1.APIResource) {
 	parts := strings.Split(resource.Name, "/")
 	kind := parts[0]
 	operation := parts[1]
+	if _, found := builder.seen[operation]; !found {
+		builder.seen[operation] = sets.String{}
+	}
 
 	builder.seen[operation].Insert(kind)
 }

@@ -99,7 +99,7 @@ func (visitor *fieldVisitor) VisitKind(k *openapi.Kind) {
 	}
 }
 
-var blacklistedFields = sets.NewString("apiVersion", "kind")
+var blacklistedFields = sets.NewString("apiVersion", "kind", "metadata", "status")
 
 // VisitPrimitive creates a new flag to populate the primitive value
 func (visitor *fieldVisitor) VisitPrimitive(p *openapi.Primitive) {

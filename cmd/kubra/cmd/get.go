@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-    "k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/kubectl/pkg/framework/openapi"
 )
 
 // getCmd represents the get command
@@ -38,5 +38,9 @@ to quickly create a Cobra application.`,
 
 func init() {
 	RootCmd.AddCommand(getCmd)
-    add(getCmd, sets.NewString("get"), "get")
+	builder := openapi.NewCmdBuilder()
+	cmds, _ := builder.BuildCommands()
+	for _, cmd := range cmds {
+		getCmd.AddCommand(cmd)
+	}
 }

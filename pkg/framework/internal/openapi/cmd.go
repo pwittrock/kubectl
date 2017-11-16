@@ -32,6 +32,7 @@ func (builder *cmdBuilderImpl) BuildCmd(resource v1.APIResource) (*cobra.Command
 	if builder.Seen(resource) {
 		return nil, fmt.Errorf("Already built command for %+v", gvk)
 	}
+	builder.add(resource)
 
 	parts := strings.Split(resource.Name, "/")
 	kind := parts[0]

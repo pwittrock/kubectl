@@ -18,15 +18,8 @@ package openapi
 
 import (
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type CmdBuilder interface {
-	// FlagBuilder returns a new request body parsed from flag values
-	BuildFlags(cmd *cobra.Command, resource v1.APIResource) (map[string]interface{}, error)
-	BuildCmd(resource v1.APIResource) (*cobra.Command, error)
-	BuildRun(command *cobra.Command, resource v1.APIResource, request map[string]interface{})
-	IsCmd(resource v1.APIResource) bool
-	Seen(resource v1.APIResource) bool
-	ListResources() ([]v1.APIResource, error)
+	BuildCommands() ([]*cobra.Command, error)
 }
