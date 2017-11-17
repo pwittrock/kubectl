@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/rest"
 )
 
@@ -40,11 +41,22 @@ func (builder *cmdBuilderImpl) buildRun(cmd *cobra.Command, resource *v1.APIReso
 
 		var result *rest.Request
 
+		verbs := sets.NewString(resource.Verbs...)
 		switch requestType {
 		case "PUT":
-			result = builder.rest.Put()
+			if verbs.HasAny("create") {
+				result = builder.rest.Post()
+			} else if verbs.HasAny("update") {
+				result = builder.rest.Put()
+			} else {
+				panic(fmt.Errorf("requestType %v not supported by verbs %v", requestType, resource.Verbs))
+			}
 		case "GET":
-			result = builder.rest.Get()
+			if verbs.HasAny("get") {
+				result = builder.rest.Get()
+			} else {
+				panic(fmt.Errorf("requestType %v not supported by verbs %v", requestType, resource.Verbs))
+			}
 		default:
 			panic(fmt.Errorf("requestType %v not supported", requestType))
 		}
@@ -59,8 +71,8 @@ func (builder *cmdBuilderImpl) buildRun(cmd *cobra.Command, resource *v1.APIReso
 
 		resp, err := result.DoRaw()
 		if err != nil {
-			fmt.Printf("Error: %v\n", resp, err)
-			fmt.Printf("URL: %v\n", result.URL().Path)
+			fmt.Printf("Error: %v\n", err)
+			fmt.Printf("URL: %s\n", result.URL().Path)
 			fmt.Printf("RequestBody: %s\n", out)
 		}
 
