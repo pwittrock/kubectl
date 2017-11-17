@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (builder *cmdBuilderImpl) BuildCommands(requestType string) ([]*cobra.Command, error) {
@@ -30,38 +31,62 @@ func (builder *cmdBuilderImpl) BuildCommands(requestType string) ([]*cobra.Comma
 
 	// Setup a sub command for each operation
 	parentCmds := map[string]*cobra.Command{}
+	parentResources := map[string]*v1.APIResource{}
 
 	for _, resource := range list {
-		if builder.isCmd(resource) {
-			// Don't expose multiple versions of the same resource
-			if builder.done(resource) {
-				continue
-			}
-
-			// Setup the command
-			cmd, err := builder.buildCmd(resource)
-			if err != nil {
-				panic(err)
-			}
-
-			operation := builder.operation(resource)
-			if _, found := parentCmds[operation]; !found {
-				parentCmds[operation] = &cobra.Command{
-					Use: fmt.Sprintf("%v", operation),
-				}
-			}
-			parent := parentCmds[operation]
-			parent.AddCommand(cmd)
-
-			// Build the flags
-			request, err := builder.buildFlags(cmd, resource)
-			if err != nil {
-				panic(err)
-			}
-
-			// Build the run function
-			builder.buildRun(cmd, resource, request, requestType)
+		if builder.isResource(resource) {
+			parentResources[resource.Name] = resource
 		}
+	}
+
+	//fmt.Printf("Parents %+v\n", parentResources)
+	for _, resource := range list {
+		// Only operate on subresources
+		if !builder.isSubResource(resource) {
+			continue
+		}
+
+		// Set the gvk from the parent if it is missing and the parent exists
+		if parent, found := parentResources[builder.resource(resource)]; found {
+			builder.setGroupVersionFromParentIfMissing(resource, parent)
+		}
+
+		// If this subresource cannot be used as a cmd, continue
+		if !builder.isCmd(resource) {
+			continue
+		}
+
+		// Don't expose multiple versions of the same resource
+		if builder.done(resource) {
+			continue
+		}
+
+		// Setup the command
+		cmd, err := builder.buildCmd(resource)
+		if err != nil {
+			panic(err)
+		}
+
+		// Mark this resource as done for this operation
+		builder.add(resource)
+
+		operation := builder.operation(resource)
+		if _, found := parentCmds[operation]; !found {
+			parentCmds[operation] = &cobra.Command{
+				Use: fmt.Sprintf("%v", operation),
+			}
+		}
+		parent := parentCmds[operation]
+		parent.AddCommand(cmd)
+
+		// Build the flags
+		request, err := builder.buildFlags(cmd, resource)
+		if err != nil {
+			panic(err)
+		}
+
+		// Build the run function
+		builder.buildRun(cmd, resource, request, requestType)
 	}
 
 	cmds := []*cobra.Command{}

@@ -11,7 +11,7 @@ import (
 )
 
 // FlagBuilder returns a new request body parsed from flag values
-func (builder *cmdBuilderImpl) buildFlags(cmd *cobra.Command, resource v1.APIResource) (map[string]interface{}, error) {
+func (builder *cmdBuilderImpl) buildFlags(cmd *cobra.Command, resource *v1.APIResource) (map[string]interface{}, error) {
 	gvk := schema.GroupVersionKind{resource.Group, resource.Version, resource.Kind}
 
 	apiSchema := builder.resources.LookupResource(gvk)
@@ -34,13 +34,15 @@ func newKindVisitor(cmd *cobra.Command, gvk schema.GroupVersionKind) *kindVisito
 		emptyVisitor{},
 		cmd,
 		resource,
+		map[string]*string{},
 	}
 }
 
 type kindVisitor struct {
 	emptyVisitor
-	cmd      *cobra.Command
-	resource map[string]interface{}
+	cmd         *cobra.Command
+	resource    map[string]interface{}
+	stringflags map[string]*string
 }
 
 func (v *kindVisitor) getRequest() interface{} {
@@ -48,9 +50,12 @@ func (v *kindVisitor) getRequest() interface{} {
 }
 
 func (visitor *kindVisitor) VisitKind(k *openapi.Kind) {
+	visitor.stringflags["name"] = visitor.cmd.Flags().String("name", "", "name of the resource")
+	visitor.stringflags["namespace"] = visitor.cmd.Flags().String("namespace", "default", "namespace of the resource")
+
 	visitor.resource["metadata"] = map[string]interface{}{
-		"name":      visitor.cmd.Flags().String("name", "", "name of the resource"),
-		"namespace": visitor.cmd.Flags().String("namespace", "default", "namespace of the resource"),
+		"name":      visitor.stringflags["name"],
+		"namespace": visitor.stringflags["namespace"],
 	}
 
 	for k, v := range k.Fields {
@@ -72,19 +77,21 @@ func (v *kindVisitor) newFieldVisitor(name string) *fieldVisitor {
 		v.cmd,
 		map[string]interface{}{},
 		false,
+		v.stringflags,
 	}
 }
 
 // fieldVisitor walks the openapi schema and registers flags for primitive fields
 type fieldVisitor struct {
 	emptyVisitor
-	name  string
-	cmd   *cobra.Command
-	field interface{}
-	array bool
+	name        string
+	cmd         *cobra.Command
+	field       interface{}
+	array       bool
+	stringflags map[string]*string
 }
 
-var whitelistedFields = sets.NewString("spec")
+var whitelistedFields = sets.NewString("spec", "rollbackTo")
 
 // VisitKind recurses into certain fields to populate flags
 func (visitor *fieldVisitor) VisitKind(k *openapi.Kind) {
@@ -123,7 +130,10 @@ func (visitor *fieldVisitor) VisitPrimitive(p *openapi.Primitive) {
 		case "boolean":
 			visitor.field = visitor.cmd.Flags().Bool(visitor.name, false, p.Description)
 		case "string":
-			visitor.field = visitor.cmd.Flags().String(visitor.name, "", p.Description)
+			if _, found := visitor.stringflags[visitor.name]; !found {
+				visitor.stringflags[visitor.name] = visitor.cmd.Flags().String(visitor.name, "", p.Description)
+			}
+			visitor.field = visitor.stringflags[visitor.name]
 		}
 	} else {
 		switch p.Type {
@@ -151,6 +161,10 @@ func (visitor *fieldVisitor) VisitArray(p *openapi.Array) {
 	}
 }
 
+func (*fieldVisitor) VisitMap(m *openapi.Map) {
+	// do nothing
+}
+
 // VisitReference traverses references
 func (visitor *fieldVisitor) VisitReference(r openapi.Reference) {
 	r.SubSchema().Accept(visitor)
@@ -164,6 +178,7 @@ func (v *fieldVisitor) newFieldVisitor(name string) *fieldVisitor {
 		v.cmd,
 		nil,
 		false,
+		v.stringflags,
 	}
 }
 

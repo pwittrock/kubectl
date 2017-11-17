@@ -26,7 +26,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-func (builder *cmdBuilderImpl) buildRun(cmd *cobra.Command, resource v1.APIResource, request map[string]interface{},
+func (builder *cmdBuilderImpl) buildRun(cmd *cobra.Command, resource *v1.APIResource, request map[string]interface{},
 	requestType string) {
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {

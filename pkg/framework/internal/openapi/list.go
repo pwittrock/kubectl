@@ -16,17 +16,41 @@ limitations under the License.
 
 package openapi
 
-import "k8s.io/apimachinery/pkg/apis/meta/v1"
+import (
+	"strings"
 
-func (builder *cmdBuilderImpl) listResources() ([]v1.APIResource, error) {
-	list := []v1.APIResource{}
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+func (builder *cmdBuilderImpl) listResources() ([]*v1.APIResource, error) {
+	list := []*v1.APIResource{}
 	gvs, err := builder.discovery.ServerResources()
 	if err != nil {
 		return nil, err
 	}
 	for _, gv := range gvs {
 		for _, r := range gv.APIResources {
-			list = append(list, r)
+			// reassign variable so we can get a pointer to it
+			resource := r
+
+			list = append(list, &resource)
+
+			// Set the group and version on the resource from the API groupversion if it is missing
+			parts := strings.Split(gv.GroupVersion, "/")
+
+			// Group maybe missing for apis under the "core" group
+			if len(resource.Group) == 0 && len(parts) > 1 {
+				resource.Group = parts[0]
+			} else if len(resource.Group) == 0 {
+				resource.Group = "core"
+			}
+
+			if len(resource.Version) == 0 && len(parts) > 1 {
+				resource.Version = parts[1]
+			} else if len(resource.Version) == 0 && len(parts) > 0 {
+				resource.Version = parts[0]
+			}
+
 		}
 	}
 	return list, nil

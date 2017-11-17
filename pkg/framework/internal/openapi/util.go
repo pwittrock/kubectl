@@ -24,21 +24,35 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-func (builder *cmdBuilderImpl) isCmd(resource v1.APIResource) bool {
+func (builder *cmdBuilderImpl) isSubResource(resource *v1.APIResource) bool {
 	if !strings.Contains(resource.Name, "/") {
 		return false
 	}
 	if strings.HasSuffix(resource.Name, "/status") {
 		return false
 	}
-	gvk := schema.GroupVersionKind{resource.Group, resource.Version, resource.Kind}
-	if builder.resources.LookupResource(gvk) == nil {
-		return false
-	}
 	return true
 }
 
-func (builder *cmdBuilderImpl) done(resource v1.APIResource) bool {
+func (builder *cmdBuilderImpl) isCmd(resource *v1.APIResource) bool {
+	gvk := schema.GroupVersionKind{resource.Group, resource.Version, resource.Kind}
+	return builder.resources.LookupResource(gvk) != nil
+}
+
+func (builder *cmdBuilderImpl) isResource(resource *v1.APIResource) bool {
+	return !strings.Contains(resource.Name, "/")
+}
+
+func (builder *cmdBuilderImpl) setGroupVersionFromParentIfMissing(resource *v1.APIResource, parent *v1.APIResource) {
+	if len(resource.Group) == 0 {
+		resource.Group = parent.Group
+	}
+	if len(resource.Version) == 0 {
+		resource.Version = parent.Version
+	}
+}
+
+func (builder *cmdBuilderImpl) done(resource *v1.APIResource) bool {
 	parts := strings.Split(resource.Name, "/")
 	kind := parts[0]
 	operation := parts[1]
@@ -46,17 +60,17 @@ func (builder *cmdBuilderImpl) done(resource v1.APIResource) bool {
 	return builder.seen[operation].HasAny(kind)
 }
 
-func (builder *cmdBuilderImpl) operation(resource v1.APIResource) string {
+func (builder *cmdBuilderImpl) operation(resource *v1.APIResource) string {
 	parts := strings.Split(resource.Name, "/")
 	return parts[1]
 }
 
-func (builder *cmdBuilderImpl) resource(resource v1.APIResource) string {
+func (builder *cmdBuilderImpl) resource(resource *v1.APIResource) string {
 	parts := strings.Split(resource.Name, "/")
 	return parts[0]
 }
 
-func (builder *cmdBuilderImpl) add(resource v1.APIResource) {
+func (builder *cmdBuilderImpl) add(resource *v1.APIResource) {
 	parts := strings.Split(resource.Name, "/")
 	kind := parts[0]
 	operation := parts[1]
