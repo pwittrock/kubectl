@@ -10,5 +10,11 @@ import (
 var factory = inject.NewFactory()
 
 func NewCmdBuilder() fw.CmdBuilder {
-	return fw.NewCmdBuilder(factory.GetResources(), factory.GetDiscovery(), factory.GetRest())
+	return fw.NewCmdBuilder(
+		factory.GetResources(),
+		factory.GetDiscovery(),
+		factory.GetRest(),
+		factory.GetApiGroup(),
+		factory.GetApiVersion(),
+	)
 }

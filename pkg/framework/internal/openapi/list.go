@@ -17,40 +17,91 @@ limitations under the License.
 package openapi
 
 import (
-	"strings"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-func (builder *cmdBuilderImpl) listResources() ([]*v1.APIResource, error) {
-	list := []*v1.APIResource{}
+func getGVR(group, version, resource string) schema.GroupVersionResource {
+	return schema.GroupVersionResource{
+		Group:    group,
+		Version:  version,
+		Resource: resource,
+	}
+}
+
+func (builder *cmdBuilderImpl) getSubResources() (map[string][]*SubResource, error) {
+	list := map[string][]*SubResource{}
 	gvs, err := builder.discovery.ServerResources()
 	if err != nil {
 		return nil, err
 	}
+
+	parentResources := map[schema.GroupVersionResource]v1.APIResource{}
+
+	// Index the parent resources by group,version,resource
 	for _, gv := range gvs {
+		group, version := builder.groupVersion(gv.GroupVersion)
 		for _, r := range gv.APIResources {
+			if builder.isResource(&r) {
+				parentResources[schema.GroupVersionResource{
+					Group:    group,
+					Version:  version,
+					Resource: r.Name,
+				}] = r
+			}
+		}
+	}
+
+	// Map subresources to resource names
+	for _, gv := range gvs {
+		group, version := builder.groupVersion(gv.GroupVersion)
+		if len(builder.apiGroup) > 0 && builder.apiGroup != group {
+			continue
+		}
+
+		if len(builder.apiVersion) > 0 && builder.apiVersion != version {
+			continue
+		}
+
+		for _, r := range gv.APIResources {
+			if !builder.isSubResource(&r) {
+				continue
+			}
+
+			// Sanity check - this shouldn't happen in practice
+			if _, found := parentResources[getGVR(group, version, builder.resource(&r))]; !found {
+				return nil, fmt.Errorf("Missing parent for subresource %s", r.Name)
+			}
+
+			// Set the group and version to the API groupVersion if missing
+			if len(r.Group) == 0 {
+				r.Group = group
+			}
+			if len(r.Version) == 0 {
+				r.Version = version
+			}
+
+			gvk := schema.GroupVersionKind{
+				r.Group,
+				r.Version,
+				r.Kind,
+			}
+			openapiSchema := builder.resources.LookupResource(gvk)
+			if openapiSchema == nil {
+				continue
+			}
+
 			// reassign variable so we can get a pointer to it
-			resource := r
-
-			list = append(list, &resource)
-
-			// Set the group and version on the resource from the API groupversion if it is missing
-			parts := strings.Split(gv.GroupVersion, "/")
-
-			// Group maybe missing for apis under the "core" group
-			if len(resource.Group) == 0 && len(parts) > 1 {
-				resource.Group = parts[0]
-			} else if len(resource.Group) == 0 {
-				resource.Group = "core"
+			sub := &SubResource{
+				resource:                 r,
+				resourceGroupVersionKind: schema.GroupVersionKind{r.Group, r.Version, r.Kind},
+				parent:          parentResources[getGVR(group, version, builder.resource(&r))],
+				apiGroupVersion: schema.GroupVersion{Group: group, Version: version},
+				openapiSchema:   openapiSchema,
 			}
-
-			if len(resource.Version) == 0 && len(parts) > 1 {
-				resource.Version = parts[1]
-			} else if len(resource.Version) == 0 && len(parts) > 0 {
-				resource.Version = parts[0]
-			}
-
+			list[r.Name] = append(list[r.Name], sub)
 		}
 	}
 	return list, nil

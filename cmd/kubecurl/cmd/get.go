@@ -15,30 +15,28 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/kubectl/pkg/framework/openapi"
 )
 
-// setCmd represents the set command
-var setCmd = &cobra.Command{
-	Use:   "do",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+// getCmd represents the get command
+var getCmd = &cobra.Command{
+	Use:   "read",
+	Short: "read performs read operations against Kubernetes APIs",
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("get called")
 	},
 }
 
 func init() {
-	RootCmd.AddCommand(setCmd)
+	RootCmd.AddCommand(getCmd)
 	builder := openapi.NewCmdBuilder()
-	cmds, _ := builder.BuildCommands("PUT", sets.NewString("update", "create"))
+	cmds, _ := builder.BuildCommands("GET", sets.NewString("get"))
 	for _, cmd := range cmds {
-		setCmd.AddCommand(cmd)
+		getCmd.AddCommand(cmd)
 	}
 }

@@ -19,9 +19,10 @@ package openapi
 import (
 	"strings"
 
+	"fmt"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 func (builder *cmdBuilderImpl) isSubResource(resource *v1.APIResource) bool {
@@ -35,6 +36,9 @@ func (builder *cmdBuilderImpl) isSubResource(resource *v1.APIResource) bool {
 }
 
 func (builder *cmdBuilderImpl) isCmd(resource *v1.APIResource) bool {
+	if !resource.Namespaced {
+		return false
+	}
 	gvk := schema.GroupVersionKind{resource.Group, resource.Version, resource.Kind}
 	return builder.resources.LookupResource(gvk) != nil
 }
@@ -47,17 +51,12 @@ func (builder *cmdBuilderImpl) setGroupVersionFromParentIfMissing(resource *v1.A
 	if len(resource.Group) == 0 {
 		resource.Group = parent.Group
 	}
+	if len(resource.Group) == 0 {
+		resource.Group = "core"
+	}
 	if len(resource.Version) == 0 {
 		resource.Version = parent.Version
 	}
-}
-
-func (builder *cmdBuilderImpl) done(resource *v1.APIResource) bool {
-	parts := strings.Split(resource.Name, "/")
-	kind := parts[0]
-	operation := parts[1]
-
-	return builder.seen[operation].HasAny(kind)
 }
 
 func (builder *cmdBuilderImpl) operation(resource *v1.APIResource) string {
@@ -70,13 +69,32 @@ func (builder *cmdBuilderImpl) resource(resource *v1.APIResource) string {
 	return parts[0]
 }
 
-func (builder *cmdBuilderImpl) add(resource *v1.APIResource) {
-	parts := strings.Split(resource.Name, "/")
-	kind := parts[0]
-	operation := parts[1]
-	if _, found := builder.seen[operation]; !found {
-		builder.seen[operation] = sets.String{}
+func (builder *cmdBuilderImpl) groupVersion(groupVersion string) (string, string) {
+	parts := strings.Split(groupVersion, "/")
+	var group, version string
+
+	// Group maybe missing for apis under the "core" group
+	if len(parts) > 1 {
+		group = parts[0]
+	} else {
+		group = "core"
 	}
 
-	builder.seen[operation].Insert(kind)
+	if len(parts) > 1 {
+		version = parts[1]
+	} else if len(parts) > 0 {
+		version = parts[0]
+	} else {
+		version = "v1"
+	}
+
+	return group, version
+}
+
+func (builder *cmdBuilderImpl) resourceOperation(name string) (string, string, error) {
+	parts := strings.Split(name, "/")
+	if len(parts) < 2 {
+		return "", "", fmt.Errorf("%s doesn't not match subresource name format", name)
+	}
+	return parts[0], parts[1], nil
 }

@@ -4,24 +4,22 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
 )
 
 // FlagBuilder returns a new request body parsed from flag values
-func (builder *cmdBuilderImpl) buildFlags(cmd *cobra.Command, resource *v1.APIResource) (map[string]interface{}, error) {
-	gvk := schema.GroupVersionKind{resource.Group, resource.Version, resource.Kind}
-
-	apiSchema := builder.resources.LookupResource(gvk)
-	if apiSchema == nil {
-		return nil, fmt.Errorf("No openapi definition found for %+v", gvk)
+func (builder *cmdBuilderImpl) buildFlags(cmd *cobra.Command, resource *SubResource) (map[string]interface{}, error) {
+	gvk := schema.GroupVersionKind{
+		resource.apiGroupVersion.Group,
+		resource.apiGroupVersion.Version,
+		resource.resource.Kind,
 	}
 
 	// Build a request body from flags
 	visitor := newKindVisitor(cmd, gvk)
-	apiSchema.Accept(visitor)
+	resource.openapiSchema.Accept(visitor)
 	return visitor.resource, nil
 }
 

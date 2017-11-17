@@ -32,10 +32,12 @@ import (
 
 type Factory struct {
 	sync.Once
-	config    *rest.Config
-	discovery discovery.DiscoveryInterface
-	resources openapi.Resources
-	rest      rest.Interface
+	config     *rest.Config
+	discovery  discovery.DiscoveryInterface
+	resources  openapi.Resources
+	rest       rest.Interface
+	apiGroup   *string
+	apiVersion *string
 }
 
 func NewFactory() *Factory {
@@ -52,6 +54,8 @@ func (c *Factory) inject() *rest.Config {
 		} else {
 			kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 		}
+		c.apiGroup = flag.String("api-group", "", "use only API group")
+		c.apiVersion = flag.String("api-version", "", "use only this API version")
 		flag.Parse()
 
 		// use the current context in kubeconfig
@@ -91,6 +95,14 @@ func (f *Factory) GetResources() openapi.Resources {
 
 func (f *Factory) GetRest() rest.Interface {
 	return f.rest
+}
+
+func (f *Factory) GetApiGroup() string {
+	return *f.apiGroup
+}
+
+func (f *Factory) GetApiVersion() string {
+	return *f.apiVersion
 }
 
 func homeDir() string {

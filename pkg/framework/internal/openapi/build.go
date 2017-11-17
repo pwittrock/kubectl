@@ -20,64 +20,47 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-func (builder *cmdBuilderImpl) BuildCommands(requestType string, verbs sets.String) ([]*cobra.Command, error) {
-	list, err := builder.listResources()
+func (builder *cmdBuilderImpl) BuildCommands(
+	requestType string,
+	verbs sets.String) ([]*cobra.Command, error) {
+	list, err := builder.getSubResources()
 	if err != nil {
 		panic(err)
 	}
 
 	// Setup a sub command for each operation
 	parentCmds := map[string]*cobra.Command{}
-	parentResources := map[string]*v1.APIResource{}
-
-	for _, resource := range list {
-		if builder.isResource(resource) {
-			parentResources[resource.Name] = resource
-		}
-	}
 
 	//fmt.Printf("Parents %+v\n", parentResources)
-	for _, resource := range list {
-		// Only operate on subresources
-		if !builder.isSubResource(resource) {
-			continue
-		}
-
-		// Set the gvk from the parent if it is missing and the parent exists
-		if parent, found := parentResources[builder.resource(resource)]; found {
-			builder.setGroupVersionFromParentIfMissing(resource, parent)
-		}
+	for _, subResourceList := range list {
+		resource := subResourceList[0]
 
 		// If this subresource cannot be used as a cmd, continue
-		if !builder.isCmd(resource) {
-			continue
-		}
-
-		// Don't expose multiple versions of the same resource
-		if builder.done(resource) {
+		if !builder.isCmd(&resource.resource) {
 			continue
 		}
 
 		// Make sure it supports the verbs required for this command
-		actualVerbs := sets.NewString(resource.Verbs...)
+		actualVerbs := sets.NewString(resource.resource.Verbs...)
 		if len(actualVerbs.Intersection(verbs).List()) == 0 {
 			continue
 		}
 
 		// Setup the command
-		cmd, err := builder.buildCmd(resource)
+		versions := []schema.GroupVersion{}
+		for _, v := range subResourceList {
+			versions = append(versions, v.apiGroupVersion)
+		}
+		cmd, err := builder.buildCmd(&resource.resource, versions)
 		if err != nil {
 			panic(err)
 		}
 
-		// Mark this resource as done for this operation
-		builder.add(resource)
-
-		operation := builder.operation(resource)
+		operation := builder.operation(&resource.resource)
 		if _, found := parentCmds[operation]; !found {
 			parentCmds[operation] = &cobra.Command{
 				Use: fmt.Sprintf("%v", operation),

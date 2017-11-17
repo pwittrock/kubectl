@@ -22,15 +22,15 @@ import (
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/rest"
 )
 
-func (builder *cmdBuilderImpl) buildRun(cmd *cobra.Command, resource *v1.APIResource, request map[string]interface{},
+func (builder *cmdBuilderImpl) buildRun(cmd *cobra.Command, resource *SubResource, request map[string]interface{},
 	requestType string) {
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {
+
 		out, _ := json.Marshal(request)
 		// Pull the name and namespace from the request so they are added to the url path
 		meta := request["metadata"].(map[string]interface{})
@@ -41,7 +41,7 @@ func (builder *cmdBuilderImpl) buildRun(cmd *cobra.Command, resource *v1.APIReso
 
 		var result *rest.Request
 
-		verbs := sets.NewString(resource.Verbs...)
+		verbs := sets.NewString(resource.resource.Verbs...)
 		switch requestType {
 		case "PUT":
 			if verbs.HasAny("create") {
@@ -49,31 +49,40 @@ func (builder *cmdBuilderImpl) buildRun(cmd *cobra.Command, resource *v1.APIReso
 			} else if verbs.HasAny("update") {
 				result = builder.rest.Put()
 			} else {
-				panic(fmt.Errorf("requestType %v not supported by verbs %v", requestType, resource.Verbs))
+				panic(fmt.Errorf("requestType %v not supported by verbs %v", requestType, resource.resource.Verbs))
 			}
 		case "GET":
 			if verbs.HasAny("get") {
 				result = builder.rest.Get()
 			} else {
-				panic(fmt.Errorf("requestType %v not supported by verbs %v", requestType, resource.Verbs))
+				panic(fmt.Errorf("requestType %v not supported by verbs %v", requestType, resource.resource.Verbs))
 			}
 		default:
 			panic(fmt.Errorf("requestType %v not supported", requestType))
 		}
 
+		var prefix []string
+		if resource.apiGroupVersion.Group == "core" {
+			prefix = []string{"api", resource.apiGroupVersion.Version}
+		} else {
+			prefix = []string{"apis", resource.apiGroupVersion.Group, resource.apiGroupVersion.Version}
+		}
+
 		result = result.
-			Prefix("apis", resource.Group, resource.Version).
+			Prefix(prefix...).
 			Namespace(*namespace).
-			Resource(builder.resource(resource)).
-			SubResource(builder.operation(resource)).
+			Resource(builder.resource(&resource.resource)).
+			SubResource(builder.operation(&resource.resource)).
 			Name(*name).
 			Body(out)
 
 		resp, err := result.DoRaw()
+		fmt.Printf("URL: %s\n", result.URL().Path)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
-			fmt.Printf("URL: %s\n", result.URL().Path)
 			fmt.Printf("RequestBody: %s\n", out)
+			fmt.Printf("ReponseBody: %s\n", resp)
+			return
 		}
 
 		mapResp := &map[string]interface{}{}

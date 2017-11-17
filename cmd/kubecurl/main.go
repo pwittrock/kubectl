@@ -14,7 +14,7 @@
 
 package main
 
-import "k8s.io/kubectl/cmd/kubra/cmd"
+import "k8s.io/kubectl/cmd/kubecurl/cmd"
 
 func main() {
 	cmd.Execute()
