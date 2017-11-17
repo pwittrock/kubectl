@@ -41,7 +41,7 @@ func (builder *cmdBuilderImpl) buildCmd(resource *v1.APIResource) (*cobra.Comman
 
 	cmd := &cobra.Command{
 		Use:   fmt.Sprintf("%v", kind),
-		Short: fmt.Sprintf("%v command for %v/%v/%v", operation, resource.Group, resource.Version, kind),
+		Short: fmt.Sprintf("%v %v/%v/%v", operation, resource.Group, resource.Version, kind),
 	}
 	return cmd, nil
 }
