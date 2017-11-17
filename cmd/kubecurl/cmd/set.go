@@ -36,7 +36,7 @@ func init() {
 	setCmd.PersistentFlags().String("api-version", "", "")
 	setCmd.Flag("api-version").Hidden = true
 	builder := openapi.NewCmdBuilder()
-	cmds, _ := builder.BuildCommands("PUT", sets.NewString("update", "create"))
+	cmds, _ := builder.BuildCommands("do", "PUT", sets.NewString("update", "create"))
 	for _, cmd := range cmds {
 		setCmd.AddCommand(cmd)
 	}

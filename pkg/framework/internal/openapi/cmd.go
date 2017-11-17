@@ -38,7 +38,7 @@ type cmdBuilderImpl struct {
 	apiVersion string
 }
 
-func (builder *cmdBuilderImpl) buildCmd(resource *v1.APIResource, versions []schema.GroupVersion) (*cobra.Command, error) {
+func (builder *cmdBuilderImpl) buildCmd(name string, resource *v1.APIResource, versions []schema.GroupVersion) (*cobra.Command, error) {
 	gvk := schema.GroupVersionKind{resource.Group, resource.Version, resource.Kind}
 	if builder.resources.LookupResource(gvk) == nil {
 		return nil, fmt.Errorf("No openapi definition found for %+v", gvk)
@@ -50,17 +50,28 @@ func (builder *cmdBuilderImpl) buildCmd(resource *v1.APIResource, versions []sch
 	}
 
 	versionsList := []string{}
+	d := false
+	var group, version string
 	for _, v := range versions {
-		versionsList = append(versionsList, fmt.Sprintf("\t%s/%s", v.Group, v.Version))
+		if !d {
+			group = v.Group
+			version = v.Version
+			versionsList = append(versionsList, fmt.Sprintf("\t%s/%s (default)", v.Group, v.Version))
+			d = true
+		} else {
+			versionsList = append(versionsList, fmt.Sprintf("\t%s/%s", v.Group, v.Version))
+		}
 	}
 
 	cmd := &cobra.Command{
-		Use:   fmt.Sprintf("%v", kind),
-		Short: fmt.Sprintf("%v %v/%v/%v", operation, resource.Group, resource.Version, kind),
+		Use: fmt.Sprintf("%v", kind),
+		Example: fmt.Sprintf("kubecurl --api-group %s --api-version %s %s %s %s --name foo",
+			group, version, name, operation, builder.resource(resource)),
+		Short: fmt.Sprintf("%s %s", operation, kind),
 		Long: fmt.Sprintf(`Supported group/versions:
 %s
 
-(set the group and version to use with with --group and --version *must be provided before any subcommands*)`,
+(set the group and version to use with with --api-group and --api-version *must be provided before any subcommands*)`,
 			strings.Join(versionsList, "\n")),
 	}
 	return cmd, nil

@@ -22,5 +22,5 @@ import (
 )
 
 type CmdBuilder interface {
-	BuildCommands(operation string, verbs sets.String) ([]*cobra.Command, error)
+	BuildCommands(name, operation string, verbs sets.String) ([]*cobra.Command, error)
 }

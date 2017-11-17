@@ -25,6 +25,7 @@ import (
 )
 
 func (builder *cmdBuilderImpl) BuildCommands(
+	name string,
 	requestType string,
 	verbs sets.String) ([]*cobra.Command, error) {
 	list, err := builder.getSubResources()
@@ -55,7 +56,7 @@ func (builder *cmdBuilderImpl) BuildCommands(
 		for _, v := range subResourceList {
 			versions = append(versions, v.apiGroupVersion)
 		}
-		cmd, err := builder.buildCmd(&resource.resource, versions)
+		cmd, err := builder.buildCmd(name, &resource.resource, versions)
 		if err != nil {
 			panic(err)
 		}
