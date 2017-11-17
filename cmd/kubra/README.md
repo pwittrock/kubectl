@@ -4,6 +4,10 @@
 Kubra dynamically exposes commands by reading the subresources listed by the discovery service and exposing
 them directly on the commandline by parsing their request schemas and exposing the fields as flags.
 
+**Note**: kubra does not compile in any notion of specific operations such as scale, rollback, etc, but instead
+just looks at what subresources exist and exposes them.  This has a number of benefits such as: working in client
+/ server version skewed environments and working with extension APIs that are not part of the core.
+
 # Try it out
 
 ## Install
