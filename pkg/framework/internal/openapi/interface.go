@@ -18,8 +18,9 @@ package openapi
 
 import (
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 type CmdBuilder interface {
-	BuildCommands(operation string) ([]*cobra.Command, error)
+	BuildCommands(operation string, verbs sets.String) ([]*cobra.Command, error)
 }

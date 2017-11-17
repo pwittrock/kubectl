@@ -12,4 +12,5 @@ commands.
 - `kubectl create deployment nginx --replicas 3`
 - `kubra do scale deployments --name nginx --replicas 3`
 - `kubra read scale deployments --name nginx`
+- `kubra do rollback deployments --name nginx`
 

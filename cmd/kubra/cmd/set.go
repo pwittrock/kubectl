@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/kubectl/pkg/framework/openapi"
 )
 
@@ -36,7 +37,7 @@ to quickly create a Cobra application.`,
 func init() {
 	RootCmd.AddCommand(setCmd)
 	builder := openapi.NewCmdBuilder()
-	cmds, _ := builder.BuildCommands("PUT")
+	cmds, _ := builder.BuildCommands("PUT", sets.NewString("update", "create"))
 	for _, cmd := range cmds {
 		setCmd.AddCommand(cmd)
 	}

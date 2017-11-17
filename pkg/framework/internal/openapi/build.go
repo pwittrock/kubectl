@@ -21,9 +21,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-func (builder *cmdBuilderImpl) BuildCommands(requestType string) ([]*cobra.Command, error) {
+func (builder *cmdBuilderImpl) BuildCommands(requestType string, verbs sets.String) ([]*cobra.Command, error) {
 	list, err := builder.listResources()
 	if err != nil {
 		panic(err)
@@ -58,6 +59,12 @@ func (builder *cmdBuilderImpl) BuildCommands(requestType string) ([]*cobra.Comma
 
 		// Don't expose multiple versions of the same resource
 		if builder.done(resource) {
+			continue
+		}
+
+		// Make sure it supports the verbs required for this command
+		actualVerbs := sets.NewString(resource.Verbs...)
+		if len(actualVerbs.Intersection(verbs).List()) == 0 {
 			continue
 		}
 
