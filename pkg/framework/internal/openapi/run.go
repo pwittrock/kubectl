@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 )
@@ -57,12 +58,22 @@ func (builder *cmdBuilderImpl) buildRun(cmd *cobra.Command, resource v1.APIResou
 			Body(out)
 
 		resp, err := result.DoRaw()
-
-		//fmt.Printf("URL: %v\n", result.URL().Path)
-		//fmt.Printf("RequestBody: %s\n", out)
-		fmt.Printf("%s", resp)
 		if err != nil {
 			fmt.Printf("Error: %v\n", resp, err)
+			fmt.Printf("URL: %v\n", result.URL().Path)
+			fmt.Printf("RequestBody: %s\n", out)
 		}
+
+		mapResp := &map[string]interface{}{}
+		err = json.Unmarshal(resp, mapResp)
+		if err != nil {
+			fmt.Printf("Error unmarshalling json map from bytes: %v %s\n", err, resp)
+		}
+
+		resp, err = yaml.Marshal(mapResp)
+		if err != nil {
+			fmt.Printf("Error marshalling yaml bytes from map: %v %v\n", mapResp, err)
+		}
+		fmt.Printf("%s", resp)
 	}
 }
