@@ -23,6 +23,8 @@ import (
 
 	"os"
 
+	"strings"
+
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -36,8 +38,8 @@ type Factory struct {
 	discovery  discovery.DiscoveryInterface
 	resources  openapi.Resources
 	rest       rest.Interface
-	apiGroup   *string
-	apiVersion *string
+	apiGroup   string
+	apiVersion string
 }
 
 func NewFactory() *Factory {
@@ -46,20 +48,37 @@ func NewFactory() *Factory {
 	return f
 }
 
+// Hack to get around that we need to parse these flags before populating the flags that will be
+// parsed by cobra - e.g. kubeconfig is needed to defined other flags which are based of the group and version
+func getStringFlag(name, defaultVal string) string {
+	found := false
+	value := defaultVal
+	for _, a := range os.Args {
+		if found {
+			value = a
+			break
+		}
+		if strings.HasPrefix(a, "--") && strings.TrimPrefix(a, "--") == name {
+			found = true
+		}
+	}
+	return value
+}
+
 func (c *Factory) inject() *rest.Config {
 	c.Do(func() {
-		var kubeconfig *string
+		var kubeconfig string
 		if home := homeDir(); home != "" {
-			kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+			kubeconfig = getStringFlag("kubeconfig", filepath.Join(home, ".kube", "config"))
 		} else {
-			kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+			kubeconfig = getStringFlag("kubeconfig", "")
 		}
-		c.apiGroup = flag.String("api-group", "", "use only API group")
-		c.apiVersion = flag.String("api-version", "", "use only this API version")
+		c.apiGroup = getStringFlag("api-group", "")
+		c.apiVersion = getStringFlag("api-version", "")
 		flag.Parse()
 
 		// use the current context in kubeconfig
-		config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+		config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -98,11 +117,11 @@ func (f *Factory) GetRest() rest.Interface {
 }
 
 func (f *Factory) GetApiGroup() string {
-	return *f.apiGroup
+	return f.apiGroup
 }
 
 func (f *Factory) GetApiVersion() string {
-	return *f.apiVersion
+	return f.apiVersion
 }
 
 func homeDir() string {

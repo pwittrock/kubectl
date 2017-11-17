@@ -37,7 +37,6 @@ var RootCmd = &cobra.Command{
 func Execute() {
 	// Register this flag for this command, it is already defined in the init package
 	RootCmd.PersistentFlags().String("kubeconfig", "", "absolute path to the kubeconfig file")
-	RootCmd.Flag("kubeconfig").Hidden = true
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

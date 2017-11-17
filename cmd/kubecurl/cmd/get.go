@@ -36,9 +36,8 @@ func init() {
 	RootCmd.AddCommand(getCmd)
 	builder := openapi.NewCmdBuilder()
 	getCmd.PersistentFlags().String("api-group", "", "")
-	getCmd.Flag("api-group").Hidden = true
 	getCmd.PersistentFlags().String("api-version", "", "")
-	getCmd.Flag("api-version").Hidden = true
+
 	cmds, _ := builder.BuildCommands("read", "GET", sets.NewString("get"))
 	for _, cmd := range cmds {
 		getCmd.AddCommand(cmd)

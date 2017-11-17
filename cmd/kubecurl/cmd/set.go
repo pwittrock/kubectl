@@ -31,10 +31,9 @@ var setCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(setCmd)
-	setCmd.PersistentFlags().String("api-group", "", "")
-	setCmd.Flag("api-group").Hidden = true
-	setCmd.PersistentFlags().String("api-version", "", "")
-	setCmd.Flag("api-version").Hidden = true
+	setCmd.PersistentFlags().String("api-group", "", "filter to include this API group only")
+	setCmd.PersistentFlags().String("api-version", "", "filter to include this API version only")
+
 	builder := openapi.NewCmdBuilder()
 	cmds, _ := builder.BuildCommands("do", "PUT", sets.NewString("update", "create"))
 	for _, cmd := range cmds {

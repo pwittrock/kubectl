@@ -77,8 +77,8 @@ func (builder *cmdBuilderImpl) buildRun(cmd *cobra.Command, resource *SubResourc
 			Body(out)
 
 		resp, err := result.DoRaw()
-		fmt.Printf("URL: %s\n", result.URL().Path)
 		if err != nil {
+			fmt.Printf("URL: %s\n", result.URL().Path)
 			fmt.Printf("Error: %v\n", err)
 			fmt.Printf("RequestBody: %s\n", out)
 			fmt.Printf("ReponseBody: %s\n", resp)
