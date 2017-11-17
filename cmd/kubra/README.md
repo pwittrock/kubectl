@@ -7,6 +7,9 @@ commands.
 # Install
 
 - setup a minikube cluster
+- clone this fork+branch
 - `go install k8s.io/kubectl/cmd/kubra`
-- `kubra set scale deployments --name nginx --replicas 1`
+- `kubectl create deployment nginx --replicas 3`
+- `kubra set scale deployments --name nginx --replicas 3`
+- `kubra get scale deployments --name nginx`
 
