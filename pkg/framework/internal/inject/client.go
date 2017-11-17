@@ -67,6 +67,7 @@ func getStringFlag(name, defaultVal string) string {
 
 func (c *Factory) inject() *rest.Config {
 	c.Do(func() {
+		flag.Parse()
 		var kubeconfig string
 		if home := homeDir(); home != "" {
 			kubeconfig = getStringFlag("kubeconfig", filepath.Join(home, ".kube", "config"))
