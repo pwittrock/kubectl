@@ -21,5 +21,5 @@ import (
 )
 
 type CmdBuilder interface {
-	BuildCommands() ([]*cobra.Command, error)
+	BuildCommands(operation string) ([]*cobra.Command, error)
 }

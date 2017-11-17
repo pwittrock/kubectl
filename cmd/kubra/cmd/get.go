@@ -39,7 +39,7 @@ to quickly create a Cobra application.`,
 func init() {
 	RootCmd.AddCommand(getCmd)
 	builder := openapi.NewCmdBuilder()
-	cmds, _ := builder.BuildCommands()
+	cmds, _ := builder.BuildCommands("GET")
 	for _, cmd := range cmds {
 		getCmd.AddCommand(cmd)
 	}

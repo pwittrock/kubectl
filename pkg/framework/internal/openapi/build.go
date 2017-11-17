@@ -22,7 +22,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (builder *cmdBuilderImpl) BuildCommands() ([]*cobra.Command, error) {
+func (builder *cmdBuilderImpl) BuildCommands(requestType string) ([]*cobra.Command, error) {
 	list, err := builder.listResources()
 	if err != nil {
 		panic(err)
@@ -60,7 +60,7 @@ func (builder *cmdBuilderImpl) BuildCommands() ([]*cobra.Command, error) {
 			}
 
 			// Build the run function
-			builder.buildRun(cmd, resource, request)
+			builder.buildRun(cmd, resource, request, requestType)
 		}
 	}
 

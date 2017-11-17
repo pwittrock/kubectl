@@ -22,9 +22,12 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
 )
 
-func (builder *cmdBuilderImpl) buildRun(cmd *cobra.Command, resource v1.APIResource, request map[string]interface{}) {
+func (builder *cmdBuilderImpl) buildRun(cmd *cobra.Command, resource v1.APIResource, request map[string]interface{},
+	requestType string) {
+
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		out, _ := json.Marshal(request)
 		// Pull the name and namespace from the request so they are added to the url path
@@ -33,7 +36,19 @@ func (builder *cmdBuilderImpl) buildRun(cmd *cobra.Command, resource v1.APIResou
 		namespace := meta["namespace"].(*string)
 
 		// Create the request
-		result := builder.rest.Put().
+
+		var result *rest.Request
+
+		switch requestType {
+		case "PUT":
+			result = builder.rest.Put()
+		case "GET":
+			result = builder.rest.Get()
+		default:
+			panic(fmt.Errorf("requestType %v not supported", requestType))
+		}
+
+		result = result.
 			Prefix("apis", resource.Group, resource.Version).
 			Namespace(*namespace).
 			Resource(builder.resource(resource)).
