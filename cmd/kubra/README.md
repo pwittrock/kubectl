@@ -10,6 +10,6 @@ commands.
 - clone this fork+branch
 - `go install k8s.io/kubectl/cmd/kubra`
 - `kubectl create deployment nginx --replicas 3`
-- `kubra set scale deployments --name nginx --replicas 3`
-- `kubra get scale deployments --name nginx`
+- `kubra do scale deployments --name nginx --replicas 3`
+- `kubra read scale deployments --name nginx`
 
