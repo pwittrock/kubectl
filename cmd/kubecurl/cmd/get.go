@@ -24,8 +24,8 @@ import (
 
 // getCmd represents the get command
 var getCmd = &cobra.Command{
-	Use:   "read",
-	Short: "read performs read operations against Kubernetes APIs",
+	Use:   "get",
+	Short: "get performs read operations against Kubernetes APIs",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("get called")

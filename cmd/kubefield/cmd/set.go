@@ -15,28 +15,38 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/kubectl/pkg/framework"
 	"k8s.io/kubectl/pkg/framework/openapi"
 )
 
 // setCmd represents the set command
 var setCmd = &cobra.Command{
 	Use:   "set",
-	Short: "set performs write operations against Kubernetes APIs",
+	Short: "",
 	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-	},
+	Run:   Do,
 }
 
 func init() {
 	RootCmd.AddCommand(setCmd)
-	setCmd.PersistentFlags().String("api-group", "", "filter to include this API group only")
-	setCmd.PersistentFlags().String("api-version", "", "filter to include this API version only")
 
-	builder := openapi.NewCmdBuilder()
-	cmds, _ := builder.BuildCommands("do", "PUT", sets.NewString("update", "create"))
-	for _, cmd := range cmds {
-		setCmd.AddCommand(cmd)
-	}
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// setCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// setCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func Do(cmd *cobra.Command, args []string) {
+	f := framework.Factory()
+
+	resources := f.GetResources()
+
 }

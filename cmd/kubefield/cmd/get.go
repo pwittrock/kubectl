@@ -15,28 +15,22 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/kubectl/pkg/framework/openapi"
 )
 
-// setCmd represents the set command
-var setCmd = &cobra.Command{
-	Use:   "set",
-	Short: "set performs write operations against Kubernetes APIs",
+// getCmd represents the get command
+var getCmd = &cobra.Command{
+	Use:   "get",
+	Short: "",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("get called")
 	},
 }
 
 func init() {
-	RootCmd.AddCommand(setCmd)
-	setCmd.PersistentFlags().String("api-group", "", "filter to include this API group only")
-	setCmd.PersistentFlags().String("api-version", "", "filter to include this API version only")
+	RootCmd.AddCommand(getCmd)
 
-	builder := openapi.NewCmdBuilder()
-	cmds, _ := builder.BuildCommands("do", "PUT", sets.NewString("update", "create"))
-	for _, cmd := range cmds {
-		setCmd.AddCommand(cmd)
-	}
 }

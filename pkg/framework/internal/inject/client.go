@@ -25,6 +25,7 @@ import (
 
 	"strings"
 
+	"github.com/googleapis/gnostic/OpenAPIv2"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -34,13 +35,16 @@ import (
 
 type Factory struct {
 	sync.Once
-	config     *rest.Config
-	discovery  discovery.DiscoveryInterface
-	resources  openapi.Resources
-	rest       rest.Interface
-	apiGroup   string
-	apiVersion string
+	config        *rest.Config
+	discovery     discovery.DiscoveryInterface
+	resources     openapi.Resources
+	openapischema *openapi_v2.Document
+	rest          rest.Interface
+	apiGroup      string
+	apiVersion    string
 }
+
+var FactorySingleton = NewFactory()
 
 func NewFactory() *Factory {
 	f := &Factory{}
@@ -92,12 +96,12 @@ func (c *Factory) inject() *rest.Config {
 		if err != nil {
 			panic(err.Error())
 		}
+		c.openapischema = openapischema
 
 		resources, err := openapi.NewOpenAPIData(openapischema)
 		if err != nil {
 			panic(err.Error())
 		}
-
 		c.resources = resources
 
 		c.rest = clientset.RESTClient()
@@ -123,6 +127,10 @@ func (f *Factory) GetApiGroup() string {
 
 func (f *Factory) GetApiVersion() string {
 	return f.apiVersion
+}
+
+func (f *Factory) GetOpenapiSchema() *openapi_v2.Document {
+	return f.openapischema
 }
 
 func homeDir() string {

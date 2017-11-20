@@ -7,14 +7,13 @@ import (
 
 // TODO: switch to dependency injection
 // This must be a singleton
-var factory = inject.NewFactory()
 
 func NewCmdBuilder() fw.CmdBuilder {
 	return fw.NewCmdBuilder(
-		factory.GetResources(),
-		factory.GetDiscovery(),
-		factory.GetRest(),
-		factory.GetApiGroup(),
-		factory.GetApiVersion(),
+		inject.FactorySingleton.GetResources(),
+		inject.FactorySingleton.GetDiscovery(),
+		inject.FactorySingleton.GetRest(),
+		inject.FactorySingleton.GetApiGroup(),
+		inject.FactorySingleton.GetApiVersion(),
 	)
 }
