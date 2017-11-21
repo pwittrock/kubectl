@@ -57,10 +57,6 @@ type kindVisitor struct {
 	stringflags map[string]*string
 }
 
-func (v *kindVisitor) getRequest() interface{} {
-	return v.resource
-}
-
 func (visitor *kindVisitor) VisitKind(k *openapi.Kind) {
 	visitor.stringflags["name"] = visitor.cmd.Flags().String("name", "", "name of the resource")
 	visitor.stringflags["namespace"] = visitor.cmd.Flags().String("namespace", "default", "namespace of the resource")

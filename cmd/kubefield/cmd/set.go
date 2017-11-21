@@ -31,30 +31,59 @@ var setCmd = &cobra.Command{
 }
 
 func init() {
+	imagePath := []string{"spec", "template", "spec", "containers", "image"}
+
 	p := resource.NewParser()
 	resources, e := p.Resources()
-	resources = resources.Filter(&resource.SkipSubresourceFilter{})
+	resources = resources.Filter(&FieldFilter{
+		resource.EmptyFilter{},
+		imagePath})
 	if e != nil {
 		panic(e)
 	}
 
-	builder := kubefield.NewCmdBuilder()
-	fn, err := builder.BuildObject(
-		setCmd,
-		resources["deployments"][0],
-		[]string{"spec", "template", "spec", "containers", "image"})
+	cmds := []*cobra.Command{}
+	for k, versions := range resources {
+		c := &cobra.Command{
+			Use: k,
+		}
+		cmds = append(cmds, c)
 
-	if err != nil {
-		panic(err)
-	}
-	setCmd.Run = func(cmd *cobra.Command, args []string) {
-		value := fn()
-		out, err := yaml.Marshal(value)
+		image := &cobra.Command{
+			Use: "image",
+		}
+		c.AddCommand(image)
+
+		builder := kubefield.NewCmdBuilder()
+		fn, err := builder.BuildObject(
+			image,
+			versions[0],
+			imagePath)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("%s\n", out)
+
+		image.Run = func(cmd *cobra.Command, args []string) {
+			value := fn()
+			out, err := yaml.Marshal(value)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Printf("%s\n", out)
+		}
 	}
 
 	RootCmd.AddCommand(setCmd)
+	for _, c := range cmds {
+		setCmd.AddCommand(c)
+	}
+}
+
+type FieldFilter struct {
+	resource.EmptyFilter
+	path []string
+}
+
+func (f *FieldFilter) Resource(r *resource.Resource) bool {
+	return r.HasField(f.path)
 }

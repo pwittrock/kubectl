@@ -30,8 +30,8 @@ type Resource struct {
 	SubResources []*SubResource
 }
 
-func (r *Resource) HasField(fieldPath, fieldType string) bool {
-	return hasField(r.Schema, fieldPath, fieldType)
+func (r *Resource) HasField(path []string) bool {
+	return hasField(r.Schema, path)
 }
 
 func (r *Resource) APIGroupVersionKind() schema.GroupVersionKind {
@@ -50,12 +50,8 @@ type SubResource struct {
 	openapi.Schema
 }
 
-func (sr *SubResource) HasField(fieldPath, fieldType string) bool {
-	return hasField(sr.Schema, fieldPath, fieldType)
-}
-
-func hasField(sch openapi.Schema, fieldPath, fieldType string) bool {
-	return false
+func (sr *SubResource) HasField(path []string) bool {
+	return hasField(sr.Schema, path)
 }
 
 func (r *SubResource) APIGroupVersionKind() schema.GroupVersionKind {
