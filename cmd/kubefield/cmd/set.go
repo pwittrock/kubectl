@@ -18,8 +18,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"k8s.io/kubectl/pkg/framework"
-	"k8s.io/kubectl/pkg/framework/openapi"
+	"k8s.io/kubectl/pkg/framework/resource"
 )
 
 // setCmd represents the set command
@@ -32,21 +31,22 @@ var setCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(setCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// setCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// setCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func Do(cmd *cobra.Command, args []string) {
-	f := framework.Factory()
+	p := resource.NewParser()
+	resources, e := p.Resources()
+	resources = resources.Filter(&resource.SkipSubresourceFilter{})
+	if e != nil {
+		panic(e)
+	}
 
-	resources := f.GetResources()
-
+	for _, resource := range resources.SortKeys() {
+		versions := resources[resource]
+		version := versions[0]
+		fmt.Printf("%s/%s/%s %v\n", version.ApiGroupVersion.Group, version.ApiGroupVersion.Version, resource, len(versions))
+		for _, subresource := range version.SubResources {
+			fmt.Printf("\t%s\n", subresource.Resource.Name)
+		}
+	}
 }
