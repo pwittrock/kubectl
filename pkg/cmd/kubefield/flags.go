@@ -118,9 +118,11 @@ func (visitor *fieldVisitor) VisitKind(k *openapi.Kind) {
 	if len(visitor.path) <= 1 {
 		value := visitor.cmd.Flags().String(visitor.path[0], "", k.Description)
 		visitor.resource = func() interface{} {
-			err := json.Unmarshal([]byte(*value), &resource)
-			if err != nil {
-				panic(err)
+			if len(*value) > 0 {
+				err := json.Unmarshal([]byte(*value), &resource)
+				if err != nil {
+					panic(err)
+				}
 			}
 			return resource
 		}
@@ -136,9 +138,9 @@ func (visitor *fieldVisitor) VisitKind(k *openapi.Kind) {
 	// Visit this field
 	fieldVisitor := visitor.newFieldVisitor(visitor.path[1:])
 	k.Fields[field].Accept(fieldVisitor)
-	resource[field] = fieldVisitor.resource()
 
 	visitor.resource = func() interface{} {
+		resource[field] = fieldVisitor.resource()
 		return resource
 	}
 }
@@ -222,8 +224,42 @@ func (visitor *fieldVisitor) VisitArray(p *openapi.Array) {
 	}
 }
 
-func (*fieldVisitor) VisitMap(m *openapi.Map) {
-	// do nothing
+func (visitor *fieldVisitor) VisitMap(m *openapi.Map) {
+	resource := map[string]interface{}{}
+
+	if len(visitor.path) == 1 {
+		// If this is the last element, provide a flag
+		value := visitor.cmd.Flags().String(visitor.path[0], "", m.Description)
+		visitor.resource = func() interface{} {
+			if len(*value) > 0 {
+				err := json.Unmarshal([]byte(*value), &resource)
+				if err != nil {
+					panic(err)
+				}
+			}
+			return resource
+		}
+		return
+	}
+
+	fv := visitor.newFieldVisitor(visitor.path[1:])
+	m.SubType.Accept(fv)
+
+	visitor.resource = func() interface{} {
+		result := fv.resource()
+
+		casted, ok := result.(map[string]interface{})
+		if ok {
+			for key, value := range casted {
+				resource[key] = value
+			}
+			return resource
+		}
+
+		name := visitor.path[1]
+		resource[name] = result
+		return resource
+	}
 }
 
 // VisitReference traverses references

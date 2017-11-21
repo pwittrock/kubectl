@@ -30,47 +30,64 @@ var setCmd = &cobra.Command{
 	Long:  ``,
 }
 
+var supportedFields = []fieldDef{
+	{"image", []string{"spec", "template", "spec", "containers", "image"}},
+	{"cpu-limits", []string{"spec", "template", "spec", "containers", "resources", "limits", "cpu"}},
+	{"memory-limits", []string{"spec", "template", "spec", "containers", "resources", "limits", "memory"}},
+}
+
+type fieldDef struct {
+	name string
+	path []string
+}
+
 func init() {
-	imagePath := []string{"spec", "template", "spec", "containers", "image"}
 
 	p := resource.NewParser()
 	resources, e := p.Resources()
-	resources = resources.Filter(&FieldFilter{
-		resource.EmptyFilter{},
-		imagePath})
 	if e != nil {
 		panic(e)
 	}
 
-	cmds := []*cobra.Command{}
-	for k, versions := range resources {
-		c := &cobra.Command{
-			Use: k,
-		}
-		cmds = append(cmds, c)
+	cmds := map[string]*cobra.Command{}
 
-		image := &cobra.Command{
-			Use: "image",
-		}
-		c.AddCommand(image)
+	for _, field := range supportedFields {
+		resources = resources.Filter(&FieldFilter{
+			resource.EmptyFilter{},
+			field.path})
 
-		builder := kubefield.NewCmdBuilder()
-		fn, err := builder.BuildObject(
-			image,
-			versions[0],
-			imagePath)
-		if err != nil {
-			panic(err)
-		}
+		for k, versions := range resources {
+			if _, found := cmds[k]; !found {
+				cmds[k] = &cobra.Command{
+					Use: k,
+				}
+			}
+			rcmd := cmds[k]
 
-		image.Run = func(cmd *cobra.Command, args []string) {
-			value := fn()
-			out, err := yaml.Marshal(value)
+			fcmd := &cobra.Command{
+				Use: field.name,
+			}
+			rcmd.AddCommand(fcmd)
+
+			builder := kubefield.NewCmdBuilder()
+			fn, err := builder.BuildObject(
+				fcmd,
+				versions[0],
+				field.path)
 			if err != nil {
 				panic(err)
 			}
-			fmt.Printf("%s\n", out)
+
+			fcmd.Run = func(cmd *cobra.Command, args []string) {
+				value := fn()
+				out, err := yaml.Marshal(value)
+				if err != nil {
+					panic(err)
+				}
+				fmt.Printf("%s\n", out)
+			}
 		}
+
 	}
 
 	RootCmd.AddCommand(setCmd)
