@@ -26,12 +26,20 @@ import (
 type Resource struct {
 	Resource        v1.APIResource
 	ApiGroupVersion schema.GroupVersion
-	OpenapiSchema   openapi.Schema
-	SubResources    []*SubResource
+	openapi.Schema
+	SubResources []*SubResource
 }
 
 func (r *Resource) HasField(fieldPath, fieldType string) bool {
-	return hasField(r.OpenapiSchema, fieldPath, fieldType)
+	return hasField(r.Schema, fieldPath, fieldType)
+}
+
+func (r *Resource) APIGroupVersionKind() schema.GroupVersionKind {
+	return r.ApiGroupVersion.WithKind(r.Resource.Kind)
+}
+
+func (r *Resource) ResourceGroupVersionKind() schema.GroupVersionKind {
+	return schema.GroupVersionKind{r.Resource.Group, r.Resource.Version, r.Resource.Kind}
 }
 
 // SubResource is an API subresource
@@ -39,13 +47,21 @@ type SubResource struct {
 	Resource        v1.APIResource
 	Parent          *Resource
 	ApiGroupVersion schema.GroupVersion
-	OpenapiSchema   openapi.Schema
+	openapi.Schema
 }
 
 func (sr *SubResource) HasField(fieldPath, fieldType string) bool {
-	return hasField(sr.OpenapiSchema, fieldPath, fieldType)
+	return hasField(sr.Schema, fieldPath, fieldType)
 }
 
 func hasField(sch openapi.Schema, fieldPath, fieldType string) bool {
 	return false
+}
+
+func (r *SubResource) APIGroupVersionKind() schema.GroupVersionKind {
+	return r.ApiGroupVersion.WithKind(r.Resource.Kind)
+}
+
+func (r *SubResource) ResourceGroupVersionKind() schema.GroupVersionKind {
+	return schema.GroupVersionKind{r.Resource.Group, r.Resource.Version, r.Resource.Kind}
 }

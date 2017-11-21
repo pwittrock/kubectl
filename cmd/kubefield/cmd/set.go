@@ -18,6 +18,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
+	"k8s.io/kubectl/pkg/cmd/kubefield"
 	"k8s.io/kubectl/pkg/framework/resource"
 )
 
@@ -26,14 +28,9 @@ var setCmd = &cobra.Command{
 	Use:   "set",
 	Short: "",
 	Long:  ``,
-	Run:   Do,
 }
 
 func init() {
-	RootCmd.AddCommand(setCmd)
-}
-
-func Do(cmd *cobra.Command, args []string) {
 	p := resource.NewParser()
 	resources, e := p.Resources()
 	resources = resources.Filter(&resource.SkipSubresourceFilter{})
@@ -41,12 +38,23 @@ func Do(cmd *cobra.Command, args []string) {
 		panic(e)
 	}
 
-	for _, resource := range resources.SortKeys() {
-		versions := resources[resource]
-		version := versions[0]
-		fmt.Printf("%s/%s/%s %v\n", version.ApiGroupVersion.Group, version.ApiGroupVersion.Version, resource, len(versions))
-		for _, subresource := range version.SubResources {
-			fmt.Printf("\t%s\n", subresource.Resource.Name)
-		}
+	builder := kubefield.NewCmdBuilder()
+	fn, err := builder.BuildObject(
+		setCmd,
+		resources["deployments"][0],
+		[]string{"spec", "template", "spec", "containers", "image"})
+
+	if err != nil {
+		panic(err)
 	}
+	setCmd.Run = func(cmd *cobra.Command, args []string) {
+		value := fn()
+		out, err := yaml.Marshal(value)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("%s\n", out)
+	}
+
+	RootCmd.AddCommand(setCmd)
 }

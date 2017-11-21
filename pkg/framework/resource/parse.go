@@ -145,7 +145,7 @@ func (p *Parser) indexResources(gvs []*v1.APIResourceList) (
 			value := &Resource{
 				Resource:        r,
 				ApiGroupVersion: schema.GroupVersion{Group: group, Version: version},
-				OpenapiSchema:   openapiSchema,
+				Schema:          openapiSchema,
 			}
 
 			byGVR[schema.GroupVersionResource{
@@ -201,7 +201,7 @@ func (p *Parser) attachSubResources(
 				Resource:        r,
 				Parent:          parent,
 				ApiGroupVersion: schema.GroupVersion{Group: group, Version: version},
-				OpenapiSchema:   openapiSchema,
+				Schema:          openapiSchema,
 			}
 
 			parent.SubResources = append(parent.SubResources, sub)
