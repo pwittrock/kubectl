@@ -47,16 +47,16 @@ type patchKindVisitor struct {
 }
 
 func (visitor *patchKindVisitor) VisitKind(k *openapi.Kind) {
-	visitor.stringflags["name"] = visitor.cmd.Flags().String("name", "", "name of the resource")
-	visitor.stringflags["namespace"] = visitor.cmd.Flags().String("namespace", "default", "namespace of the resource")
+	//visitor.stringflags["name"] = visitor.cmd.Flags().String("name", "", "name of the resource")
+	//visitor.stringflags["namespace"] = visitor.cmd.Flags().String("namespace", "default", "namespace of the resource")
 
 	resource := map[string]interface{}{}
-	resource["apiVersion"] = fmt.Sprintf("%v/%v", visitor.gvk.Group, visitor.gvk.Version)
-	resource["kind"] = fmt.Sprintf("%v", visitor.gvk.Kind)
-	resource["metadata"] = map[string]interface{}{
-		"name":      visitor.stringflags["name"],
-		"namespace": visitor.stringflags["namespace"],
-	}
+	//resource["apiVersion"] = fmt.Sprintf("%v/%v", visitor.gvk.Group, visitor.gvk.Version)
+	//resource["kind"] = fmt.Sprintf("%v", visitor.gvk.Kind)
+	//resource["metadata"] = map[string]interface{}{
+	//	"name":      visitor.stringflags["name"],
+	//	"namespace": visitor.stringflags["namespace"],
+	//}
 
 	if len(visitor.path) == 0 {
 		panic(fmt.Errorf("path must have length greater than 0: %v", visitor.path))

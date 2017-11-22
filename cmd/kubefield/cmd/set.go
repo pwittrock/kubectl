@@ -15,12 +15,14 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 	"k8s.io/kubectl/pkg/framework/resource"
 	"k8s.io/kubectl/pkg/framework/resource/flags"
+	_ "k8s.io/kubernetes/pkg/kubectl/apply/parse"
 )
 
 // setCmd represents the set command
@@ -37,6 +39,7 @@ var supportedFields = []fieldDef{
 	{"limits", []string{"spec", "template", "spec", "containers", "resources", "limits"}},
 	{"ports", []string{"spec", "template", "spec", "containers", "ports"}},
 	{"env", []string{"spec", "template", "spec", "containers", "env"}},
+	{"replicas", []string{"spec", "replicas"}},
 }
 
 type fieldDef struct {
@@ -51,6 +54,8 @@ func init() {
 	if e != nil {
 		panic(e)
 	}
+
+	output := setCmd.PersistentFlags().String("output", "yaml", "")
 
 	cmds := map[string]*cobra.Command{}
 
@@ -83,9 +88,18 @@ func init() {
 
 			fcmd.Run = func(cmd *cobra.Command, args []string) {
 				value := fn()
-				out, err := yaml.Marshal(value)
-				if err != nil {
-					panic(err)
+				var out []byte
+
+				if *output == "yaml" {
+					out, err = yaml.Marshal(value)
+					if err != nil {
+						panic(err)
+					}
+				} else {
+					out, err = json.Marshal(value)
+					if err != nil {
+						panic(err)
+					}
 				}
 				fmt.Printf("%s\n", out)
 			}
