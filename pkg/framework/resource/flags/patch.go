@@ -23,7 +23,8 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	fw "k8s.io/kubectl/pkg/framework/openapi"
-	"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
+	//"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
+	openapi "k8s.io/kube-openapi/pkg/util/proto"
 )
 
 func newPatchKindVisitor(cmd *cobra.Command, gvk schema.GroupVersionKind, path []string) *patchKindVisitor {

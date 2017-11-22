@@ -106,7 +106,7 @@ func (p *cadvisorStatsProvider) ListPodStats() ([]statsapi.PodStats, error) {
 		if !isPodManagedContainer(&cinfo) {
 			continue
 		}
-		ref := buildPodRef(&cinfo)
+		ref := buildPodRef(cinfo.Spec.Labels)
 
 		// Lookup the PodStats for the pod using the PodRef. If none exists,
 		// initialize a new entry.
@@ -134,13 +134,64 @@ func (p *cadvisorStatsProvider) ListPodStats() ([]statsapi.PodStats, error) {
 	for _, podStats := range podToStats {
 		// Lookup the volume stats for each pod.
 		podUID := types.UID(podStats.PodRef.UID)
+		var ephemeralStats []statsapi.VolumeStats
 		if vstats, found := p.resourceAnalyzer.GetPodVolumeStats(podUID); found {
-			podStats.VolumeStats = vstats.Volumes
+			ephemeralStats = make([]statsapi.VolumeStats, len(vstats.EphemeralVolumes))
+			copy(ephemeralStats, vstats.EphemeralVolumes)
+			podStats.VolumeStats = append(vstats.EphemeralVolumes, vstats.PersistentVolumes...)
 		}
+		podStats.EphemeralStorage = calcEphemeralStorage(podStats.Containers, ephemeralStats, &rootFsInfo)
 		result = append(result, *podStats)
 	}
 
 	return result, nil
+}
+
+func calcEphemeralStorage(containers []statsapi.ContainerStats, volumes []statsapi.VolumeStats, rootFsInfo *cadvisorapiv2.FsInfo) *statsapi.FsStats {
+	result := &statsapi.FsStats{
+		Time:           metav1.NewTime(rootFsInfo.Timestamp),
+		AvailableBytes: &rootFsInfo.Available,
+		CapacityBytes:  &rootFsInfo.Capacity,
+		InodesFree:     rootFsInfo.InodesFree,
+		Inodes:         rootFsInfo.Inodes,
+	}
+	for _, container := range containers {
+		addContainerUsage(result, &container)
+	}
+	for _, volume := range volumes {
+		result.UsedBytes = addUsage(result.UsedBytes, volume.FsStats.UsedBytes)
+		result.InodesUsed = addUsage(result.InodesUsed, volume.InodesUsed)
+		result.Time = maxUpdateTime(&result.Time, &volume.FsStats.Time)
+	}
+	return result
+}
+
+func addContainerUsage(stat *statsapi.FsStats, container *statsapi.ContainerStats) {
+	if rootFs := container.Rootfs; rootFs != nil {
+		stat.Time = maxUpdateTime(&stat.Time, &rootFs.Time)
+		stat.InodesUsed = addUsage(stat.InodesUsed, rootFs.InodesUsed)
+		stat.UsedBytes = addUsage(stat.UsedBytes, rootFs.UsedBytes)
+		if logs := container.Logs; logs != nil {
+			stat.UsedBytes = addUsage(stat.UsedBytes, logs.UsedBytes)
+			stat.Time = maxUpdateTime(&stat.Time, &logs.Time)
+		}
+	}
+}
+
+func maxUpdateTime(first, second *metav1.Time) metav1.Time {
+	if first.Before(second) {
+		return *second
+	}
+	return *first
+}
+func addUsage(first, second *uint64) *uint64 {
+	if first == nil {
+		return second
+	} else if second == nil {
+		return first
+	}
+	total := *first + *second
+	return &total
 }
 
 // ImageFsStats returns the stats of the filesystem for storing images.
@@ -172,10 +223,10 @@ func (p *cadvisorStatsProvider) ImageFsStats() (*statsapi.FsStats, error) {
 }
 
 // buildPodRef returns a PodReference that identifies the Pod managing cinfo
-func buildPodRef(cinfo *cadvisorapiv2.ContainerInfo) statsapi.PodReference {
-	podName := kubetypes.GetPodName(cinfo.Spec.Labels)
-	podNamespace := kubetypes.GetPodNamespace(cinfo.Spec.Labels)
-	podUID := kubetypes.GetPodUID(cinfo.Spec.Labels)
+func buildPodRef(containerLabels map[string]string) statsapi.PodReference {
+	podName := kubetypes.GetPodName(containerLabels)
+	podNamespace := kubetypes.GetPodNamespace(containerLabels)
+	podUID := kubetypes.GetPodUID(containerLabels)
 	return statsapi.PodReference{Name: podName, Namespace: podNamespace, UID: podUID}
 }
 
@@ -204,7 +255,7 @@ func removeTerminatedContainerInfo(containerInfo map[string]cadvisorapiv2.Contai
 			continue
 		}
 		cinfoID := containerID{
-			podRef:        buildPodRef(&cinfo),
+			podRef:        buildPodRef(cinfo.Spec.Labels),
 			containerName: kubetypes.GetContainerName(cinfo.Spec.Labels),
 		}
 		cinfoMap[cinfoID] = append(cinfoMap[cinfoID], containerInfoWithCgroup{

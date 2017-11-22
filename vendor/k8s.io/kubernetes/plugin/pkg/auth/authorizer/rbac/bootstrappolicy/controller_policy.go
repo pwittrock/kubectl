@@ -69,6 +69,14 @@ func buildControllerRoles() ([]rbac.ClusterRole, []rbac.ClusterRoleBinding) {
 		},
 	})
 	addControllerRole(&controllerRoles, &controllerRoleBindings, rbac.ClusterRole{
+		ObjectMeta: metav1.ObjectMeta{Name: saRolePrefix + "clusterrole-aggregation-controller"},
+		Rules: []rbac.PolicyRule{
+			// this controller must have full permissions to allow it to mutate any role in any way
+			rbac.NewRule("*").Groups("*").Resources("*").RuleOrDie(),
+			rbac.NewRule("*").URLs("*").RuleOrDie(),
+		},
+	})
+	addControllerRole(&controllerRoles, &controllerRoleBindings, rbac.ClusterRole{
 		ObjectMeta: metav1.ObjectMeta{Name: saRolePrefix + "cronjob-controller"},
 		Rules: []rbac.PolicyRule{
 			rbac.NewRule("get", "list", "watch", "update").Groups(batchGroup).Resources("cronjobs").RuleOrDie(),
@@ -156,16 +164,13 @@ func buildControllerRoles() ([]rbac.ClusterRole, []rbac.ClusterRoleBinding) {
 		Rules: []rbac.PolicyRule{
 			rbac.NewRule("get", "list", "watch").Groups(autoscalingGroup).Resources("horizontalpodautoscalers").RuleOrDie(),
 			rbac.NewRule("update").Groups(autoscalingGroup).Resources("horizontalpodautoscalers/status").RuleOrDie(),
-			rbac.NewRule("get", "update").Groups(legacyGroup).Resources("replicationcontrollers/scale").RuleOrDie(),
-			// TODO this should be removable when the HPA contoller is fixed
-			rbac.NewRule("get", "update").Groups(extensionsGroup).Resources("replicationcontrollers/scale").RuleOrDie(),
-			rbac.NewRule("get", "update").Groups(extensionsGroup, appsGroup).Resources("deployments/scale", "replicasets/scale").RuleOrDie(),
+			rbac.NewRule("get", "update").Groups("*").Resources("*/scale").RuleOrDie(),
 			rbac.NewRule("list").Groups(legacyGroup).Resources("pods").RuleOrDie(),
 			// TODO: restrict this to the appropriate namespace
 			rbac.NewRule("get").Groups(legacyGroup).Resources("services/proxy").Names("https:heapster:", "http:heapster:").RuleOrDie(),
 			// allow listing resource metrics and custom metrics
 			rbac.NewRule("list").Groups(resMetricsGroup).Resources("pods").RuleOrDie(),
-			rbac.NewRule("list").Groups(customMetricsGroup).Resources("*").RuleOrDie(),
+			rbac.NewRule("get", "list").Groups(customMetricsGroup).Resources("*").RuleOrDie(),
 			eventsRule(),
 		},
 	})

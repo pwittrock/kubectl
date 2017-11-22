@@ -25,6 +25,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/validation"
 	"k8s.io/kubernetes/cmd/kubeadm/app/phases/upgrade"
 	kubeadmutil "k8s.io/kubernetes/cmd/kubeadm/app/util"
 )
@@ -33,10 +34,13 @@ import (
 func NewCmdPlan(parentFlags *cmdUpgradeFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "plan",
-		Short: "Check which versions are available to upgrade to and validate whether your current cluster is upgradeable",
+		Short: "Check which versions are available to upgrade to and validate whether your current cluster is upgradeable.",
 		Run: func(_ *cobra.Command, _ []string) {
+			var err error
+			parentFlags.ignoreChecksErrorsSet, err = validation.ValidateIgnoreChecksErrors(parentFlags.ignoreChecksErrors, parentFlags.skipPreFlight)
+			kubeadmutil.CheckErr(err)
 			// Ensure the user is root
-			err := runPreflightChecks(parentFlags.skipPreFlight)
+			err = runPreflightChecks(parentFlags.ignoreChecksErrorsSet)
 			kubeadmutil.CheckErr(err)
 
 			err = RunPlan(parentFlags)
@@ -56,8 +60,10 @@ func RunPlan(parentFlags *cmdUpgradeFlags) error {
 		return err
 	}
 
+	// Define Local Etcd cluster to be able to retrieve information
+	etcdCluster := kubeadmutil.LocalEtcdCluster{}
 	// Compute which upgrade possibilities there are
-	availUpgrades, err := upgrade.GetAvailableUpgrades(upgradeVars.versionGetter, parentFlags.allowExperimentalUpgrades, parentFlags.allowRCUpgrades)
+	availUpgrades, err := upgrade.GetAvailableUpgrades(upgradeVars.versionGetter, parentFlags.allowExperimentalUpgrades, parentFlags.allowRCUpgrades, etcdCluster)
 	if err != nil {
 		return fmt.Errorf("[upgrade/versions] FATAL: %v", err)
 	}
@@ -83,7 +89,7 @@ func printAvailableUpgrades(upgrades []upgrade.Upgrade, w io.Writer) {
 	for _, upgrade := range upgrades {
 
 		if upgrade.CanUpgradeKubelets() {
-			fmt.Fprintln(w, "Components that must be upgraded manually after you've upgraded the control plane with 'kubeadm upgrade apply':")
+			fmt.Fprintln(w, "Components that must be upgraded manually after you have upgraded the control plane with 'kubeadm upgrade apply':")
 			fmt.Fprintln(tabw, "COMPONENT\tCURRENT\tAVAILABLE")
 			firstPrinted := false
 
@@ -112,6 +118,7 @@ func printAvailableUpgrades(upgrades []upgrade.Upgrade, w io.Writer) {
 		fmt.Fprintf(tabw, "Scheduler\t%s\t%s\n", upgrade.Before.KubeVersion, upgrade.After.KubeVersion)
 		fmt.Fprintf(tabw, "Kube Proxy\t%s\t%s\n", upgrade.Before.KubeVersion, upgrade.After.KubeVersion)
 		fmt.Fprintf(tabw, "Kube DNS\t%s\t%s\n", upgrade.Before.DNSVersion, upgrade.After.DNSVersion)
+		fmt.Fprintf(tabw, "Etcd\t%s\t%s\n", upgrade.Before.EtcdVersion, upgrade.After.EtcdVersion)
 
 		// The tabwriter should be flushed at this stage as we have now put in all the required content for this time. This is required for the tabs' size to be correct.
 		tabw.Flush()
@@ -122,7 +129,7 @@ func printAvailableUpgrades(upgrades []upgrade.Upgrade, w io.Writer) {
 		fmt.Fprintln(w, "")
 
 		if upgrade.Before.KubeadmVersion != upgrade.After.KubeadmVersion {
-			fmt.Fprintf(w, "Note: Before you do can perform this upgrade, you have to update kubeadm to %s\n", upgrade.After.KubeadmVersion)
+			fmt.Fprintf(w, "Note: Before you can perform this upgrade, you have to update kubeadm to %s.\n", upgrade.After.KubeadmVersion)
 			fmt.Fprintln(w, "")
 		}
 

@@ -23,12 +23,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/wait"
-	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	clientset "k8s.io/client-go/kubernetes"
 	corelisters "k8s.io/client-go/listers/core/v1"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
-	"k8s.io/kubernetes/pkg/features"
 	"k8s.io/kubernetes/plugin/pkg/scheduler/algorithm"
 	schedulerapi "k8s.io/kubernetes/plugin/pkg/scheduler/api"
 	"k8s.io/kubernetes/plugin/pkg/scheduler/core"
@@ -56,6 +53,7 @@ type PodPreemptor interface {
 	GetUpdatedPod(pod *v1.Pod) (*v1.Pod, error)
 	DeletePod(pod *v1.Pod) error
 	UpdatePodAnnotations(pod *v1.Pod, annots map[string]string) error
+	RemoveNominatedNodeAnnotation(pod *v1.Pod) error
 }
 
 // Scheduler watches for new unscheduled pods. It attempts to find
@@ -78,12 +76,9 @@ type Configurator interface {
 	GetPriorityMetadataProducer() (algorithm.MetadataProducer, error)
 	GetPredicateMetadataProducer() (algorithm.PredicateMetadataProducer, error)
 	GetPredicates(predicateKeys sets.String) (map[string]algorithm.FitPredicate, error)
-	GetHardPodAffinitySymmetricWeight() int
+	GetHardPodAffinitySymmetricWeight() int32
 	GetSchedulerName() string
-	MakeDefaultErrorFunc(backoff *util.PodBackoff, podQueue *cache.FIFO) func(pod *v1.Pod, err error)
-
-	// Probably doesn't need to be public.  But exposed for now in case.
-	ResponsibleForPod(pod *v1.Pod) bool
+	MakeDefaultErrorFunc(backoff *util.PodBackoff, podQueue core.SchedulingQueue) func(pod *v1.Pod, err error)
 
 	// Needs to be exposed for things like integration tests where we want to make fake nodes.
 	GetNodeLister() corelisters.NodeLister
@@ -155,6 +150,14 @@ func NewFromConfigurator(c Configurator, modifiers ...func(c *Config)) (*Schedul
 	return s, nil
 }
 
+// NewFromConfig returns a new scheduler using the provided Config.
+func NewFromConfig(config *Config) *Scheduler {
+	metrics.Register()
+	return &Scheduler{
+		config: config,
+	}
+}
+
 // Run begins watching and scheduling. It waits for cache to be synced, then starts a goroutine and returns immediately.
 func (sched *Scheduler) Run() {
 	if !sched.config.WaitForCacheSync() {
@@ -188,8 +191,11 @@ func (sched *Scheduler) schedule(pod *v1.Pod) (string, error) {
 	return host, err
 }
 
+// preempt tries to create room for a pod that has failed to schedule, by preempting lower priority pods if possible.
+// If it succeeds, it adds the name of the node where preemption has happened to the pod annotations.
+// It returns the node name and an error if any.
 func (sched *Scheduler) preempt(preemptor *v1.Pod, scheduleErr error) (string, error) {
-	if !utilfeature.DefaultFeatureGate.Enabled(features.PodPriority) {
+	if !util.PodPriorityEnabled() {
 		glog.V(3).Infof("Pod priority feature is not enabled. No preemption is performed.")
 		return "", nil
 	}
@@ -198,29 +204,40 @@ func (sched *Scheduler) preempt(preemptor *v1.Pod, scheduleErr error) (string, e
 		glog.Errorf("Error getting the updated preemptor pod object: %v", err)
 		return "", err
 	}
-	node, victims, err := sched.config.Algorithm.Preempt(preemptor, sched.config.NodeLister, scheduleErr)
+	node, victims, nominatedPodsToClear, err := sched.config.Algorithm.Preempt(preemptor, sched.config.NodeLister, scheduleErr)
 	if err != nil {
 		glog.Errorf("Error preempting victims to make room for %v/%v.", preemptor.Namespace, preemptor.Name)
 		return "", err
 	}
-	if node == nil {
-		return "", err
-	}
-	glog.Infof("Preempting %d pod(s) on node %v to make room for %v/%v.", len(victims), node.Name, preemptor.Namespace, preemptor.Name)
-	annotations := map[string]string{core.NominatedNodeAnnotationKey: node.Name}
-	err = sched.config.PodPreemptor.UpdatePodAnnotations(preemptor, annotations)
-	if err != nil {
-		glog.Errorf("Error in preemption process. Cannot update pod %v annotations: %v", preemptor.Name, err)
-		return "", err
-	}
-	for _, victim := range victims {
-		if err := sched.config.PodPreemptor.DeletePod(victim); err != nil {
-			glog.Errorf("Error preempting pod %v/%v: %v", victim.Namespace, victim.Name, err)
+	var nodeName = ""
+	if node != nil {
+		nodeName = node.Name
+		annotations := map[string]string{core.NominatedNodeAnnotationKey: nodeName}
+		err = sched.config.PodPreemptor.UpdatePodAnnotations(preemptor, annotations)
+		if err != nil {
+			glog.Errorf("Error in preemption process. Cannot update pod %v annotations: %v", preemptor.Name, err)
 			return "", err
 		}
-		sched.config.Recorder.Eventf(victim, v1.EventTypeNormal, "Preempted", "by %v/%v on node %v", preemptor.Namespace, preemptor.Name, node.Name)
+		for _, victim := range victims {
+			if err := sched.config.PodPreemptor.DeletePod(victim); err != nil {
+				glog.Errorf("Error preempting pod %v/%v: %v", victim.Namespace, victim.Name, err)
+				return "", err
+			}
+			sched.config.Recorder.Eventf(victim, v1.EventTypeNormal, "Preempted", "by %v/%v on node %v", preemptor.Namespace, preemptor.Name, nodeName)
+		}
 	}
-	return node.Name, err
+	// Clearing nominated pods should happen outside of "if node != nil". Node could
+	// be nil when a pod with nominated node name is eligible to preempt again,
+	// but preemption logic does not find any node for it. In that case Preempt()
+	// function of generic_scheduler.go returns the pod itself for removal of the annotation.
+	for _, p := range nominatedPodsToClear {
+		rErr := sched.config.PodPreemptor.RemoveNominatedNodeAnnotation(p)
+		if rErr != nil {
+			glog.Errorf("Cannot remove nominated node annotation of pod: %v", rErr)
+			// We do not return as this error is not critical.
+		}
+	}
+	return nodeName, err
 }
 
 // assume signals to the cache that a pod is already in the cache, so that binding can be asynchronous.
@@ -323,7 +340,6 @@ func (sched *Scheduler) scheduleOne() {
 	if err != nil {
 		return
 	}
-
 	// bind the pod to its host asynchronously (we can do this b/c of the assumption step above).
 	go func() {
 		err := sched.bind(&assumedPod, &v1.Binding{

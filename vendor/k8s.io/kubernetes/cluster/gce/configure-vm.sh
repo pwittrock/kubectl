@@ -66,10 +66,6 @@ function create-node-pki {
     KUBELET_KEY_PATH="${pki_dir}/kubelet.key"
     echo "${KUBELET_KEY}" | base64 --decode > "${KUBELET_KEY_PATH}"
   fi
-
-  # TODO(mikedanese): remove this when we don't support downgrading to versions
-  # < 1.6.
-  ln -sf "${CA_CERT_BUNDLE_PATH}" /etc/kubernetes/ca.crt
 }
 
 # A hookpoint for setting up local devices
@@ -93,7 +89,7 @@ function config-ip-firewall {
   iptables -N KUBE-METADATA-SERVER
   iptables -I FORWARD -p tcp -d 169.254.169.254 --dport 80 -j KUBE-METADATA-SERVER
 
-  if [[ -n "${KUBE_FIREWALL_METADATA_SERVER:-}" ]]; then
+  if [[ "${ENABLE_METADATA_CONCEALMENT:-}" == "true" ]]; then
     iptables -A KUBE-METADATA-SERVER -j DROP
   fi
 }
@@ -419,7 +415,7 @@ enable_cluster_ui: '$(echo "$ENABLE_CLUSTER_UI" | sed -e "s/'/''/g")'
 enable_node_problem_detector: '$(echo "$ENABLE_NODE_PROBLEM_DETECTOR" | sed -e "s/'/''/g")'
 enable_l7_loadbalancing: '$(echo "$ENABLE_L7_LOADBALANCING" | sed -e "s/'/''/g")'
 enable_node_logging: '$(echo "$ENABLE_NODE_LOGGING" | sed -e "s/'/''/g")'
-enable_metadata_proxy: '$(echo "$ENABLE_METADATA_PROXY" | sed -e "s/'/''/g")'
+enable_metadata_proxy: '$(echo "$ENABLE_METADATA_CONCEALMENT" | sed -e "s/'/''/g")'
 enable_metrics_server: '$(echo "$ENABLE_METRICS_SERVER" | sed -e "s/'/''/g")'
 enable_pod_security_policy: '$(echo "$ENABLE_POD_SECURITY_POLICY" | sed -e "s/'/''/g")'
 enable_rescheduler: '$(echo "$ENABLE_RESCHEDULER" | sed -e "s/'/''/g")'
@@ -481,6 +477,11 @@ EOF
     if [ -n "${ETCD_IMAGE:-}" ]; then
       cat <<EOF >>/srv/salt-overlay/pillar/cluster-params.sls
 etcd_docker_tag: '$(echo "$ETCD_IMAGE" | sed -e "s/'/''/g")'
+EOF
+    fi
+    if [ -n "${ETCD_DOCKER_REPOSITORY:-}" ]; then
+      cat <<EOF >>/srv/salt-overlay/pillar/cluster-params.sls
+etcd_docker_repository: '$(echo "$ETCD_DOCKER_REPOSITORY" | sed -e "s/'/''/g")'
 EOF
     fi
     if [ -n "${ETCD_VERSION:-}" ]; then
@@ -581,6 +582,11 @@ EOF
 node_labels: '$(echo "${NODE_LABELS}" | sed -e "s/'/''/g")'
 EOF
     fi
+    if [ -n "${NON_MASTER_NODE_LABELS:-}" ]; then
+      cat <<EOF >>/srv/salt-overlay/pillar/cluster-params.sls
+non_master_node_labels: '$(echo "${NON_MASTER_NODE_LABELS}" | sed -e "s/'/''/g")'
+EOF
+    fi
     if [ -n "${NODE_TAINTS:-}" ]; then
       cat <<EOF >>/srv/salt-overlay/pillar/cluster-params.sls
 node_taints: '$(echo "${NODE_TAINTS}" | sed -e "s/'/''/g")'
@@ -663,13 +669,12 @@ EOF
 #
 #  - When run as static pods, use the CA_CERT and KUBE_PROXY_TOKEN to generate a
 #    kubeconfig file for the kube-proxy to securely connect to the apiserver.
-#  - When run as a daemonset, generate a kubeconfig file specific to service account.
 function create-salt-kubeproxy-auth() {
   local -r kube_proxy_kubeconfig_file="/srv/salt-overlay/salt/kube-proxy/kubeconfig"
-  local kubeconfig_content=""
   if [ ! -e "${kube_proxy_kubeconfig_file}" ]; then
-    if [[ "${KUBE_PROXY_DAEMONSET:-}" != "true" ]]; then
-      kubeconfig_content="\
+    mkdir -p /srv/salt-overlay/salt/kube-proxy
+    (umask 077;
+        cat > "${kube_proxy_kubeconfig_file}" <<EOF
 apiVersion: v1
 kind: Config
 users:
@@ -685,33 +690,7 @@ contexts:
     cluster: local
     user: kube-proxy
   name: service-account-context
-current-context: service-account-context"
-    else
-      # Generate kubeconfig specific to service account.
-      kubeconfig_content="\
-apiVersion: v1
-kind: Config
-clusters:
-- cluster:
-    certificate-authority: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-    server: https://${KUBERNETES_MASTER_NAME}
-  name: default
-contexts:
-- context:
-    cluster: default
-    namespace: default
-    user: default
-  name: default
-current-context: default
-users:
-- name: default
-  user:
-    tokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token"
-    fi
-    mkdir -p /srv/salt-overlay/salt/kube-proxy
-    (umask 077;
-        cat > "${kube_proxy_kubeconfig_file}" <<EOF
-${kubeconfig_content}
+current-context: service-account-context
 EOF
 )
   fi
@@ -887,7 +866,9 @@ if [[ -z "${is_push}" ]]; then
   create-node-pki
   create-salt-pillar
   create-salt-kubelet-auth
-  create-salt-kubeproxy-auth
+  if [[ "${KUBE_PROXY_DAEMONSET:-}" != "true" ]]; then
+    create-salt-kubeproxy-auth
+  fi
   download-release
   configure-salt
   remove-docker-artifacts

@@ -16,7 +16,7 @@ limitations under the License.
 
 package resource
 
-import "k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
+import openapi "k8s.io/kube-openapi/pkg/util/proto"
 
 type Schema struct {
 	openapiSchema openapi.Schema

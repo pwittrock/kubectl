@@ -412,7 +412,6 @@ function kube::release::package_kube_manifests_tarball() {
   cp "${salt_dir}/rescheduler/rescheduler.manifest" "${gci_dst_dir}/"
   cp "${salt_dir}/e2e-image-puller/e2e-image-puller.manifest" "${gci_dst_dir}/"
   cp "${KUBE_ROOT}/cluster/gce/gci/configure-helper.sh" "${gci_dst_dir}/gci-configure-helper.sh"
-  cp "${KUBE_ROOT}/cluster/gce/gci/mounter/mounter" "${gci_dst_dir}/gci-mounter"
   cp "${KUBE_ROOT}/cluster/gce/gci/health-monitor.sh" "${gci_dst_dir}/health-monitor.sh"
   cp "${KUBE_ROOT}/cluster/gce/container-linux/configure-helper.sh" "${gci_dst_dir}/container-linux-configure-helper.sh"
   cp -r "${salt_dir}/kube-admission-controls/limit-range" "${gci_dst_dir}"
@@ -508,12 +507,6 @@ EOF
 
   mkdir -p "${release_stage}/third_party"
   cp -R "${KUBE_ROOT}/third_party/htpasswd" "${release_stage}/third_party/htpasswd"
-
-  # Include only federation/cluster, federation/manifests and federation/deploy
-  mkdir "${release_stage}/federation"
-  cp -R "${KUBE_ROOT}/federation/cluster" "${release_stage}/federation/"
-  cp -R "${KUBE_ROOT}/federation/manifests" "${release_stage}/federation/"
-  cp -R "${KUBE_ROOT}/federation/deploy" "${release_stage}/federation/"
 
   # Include hack/lib as a dependency for the cluster/ scripts
   mkdir -p "${release_stage}/hack"

@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
+	openapi "k8s.io/kube-openapi/pkg/util/proto"
 )
 
 // FlagBuilder returns a new request body parsed from flag values

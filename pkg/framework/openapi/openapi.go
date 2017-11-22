@@ -2,9 +2,9 @@ package openapi
 
 import (
 	"fmt"
+	openapi "k8s.io/kube-openapi/pkg/util/proto"
 	"k8s.io/kubectl/pkg/framework/internal/inject"
 	fw "k8s.io/kubectl/pkg/framework/internal/openapi"
-	"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
 )
 
 // TODO: switch to dependency injection

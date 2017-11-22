@@ -22,6 +22,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"k8s.io/kubectl/pkg/framework/resource"
 	"k8s.io/kubectl/pkg/framework/resource/flags"
+	_ "k8s.io/kubernetes/pkg/kubectl/apply"
 )
 
 // setCmd represents the set command

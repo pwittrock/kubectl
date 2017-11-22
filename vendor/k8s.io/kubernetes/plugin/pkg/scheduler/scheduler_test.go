@@ -31,7 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientcache "k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
-	"k8s.io/kubernetes/pkg/api"
+	"k8s.io/kubernetes/pkg/api/legacyscheme"
 	"k8s.io/kubernetes/plugin/pkg/scheduler/algorithm"
 	"k8s.io/kubernetes/plugin/pkg/scheduler/algorithm/predicates"
 	"k8s.io/kubernetes/plugin/pkg/scheduler/core"
@@ -49,6 +49,24 @@ func (fb fakeBinder) Bind(binding *v1.Binding) error { return fb.b(binding) }
 type fakePodConditionUpdater struct{}
 
 func (fc fakePodConditionUpdater) Update(pod *v1.Pod, podCondition *v1.PodCondition) error {
+	return nil
+}
+
+type fakePodPreemptor struct{}
+
+func (fp fakePodPreemptor) GetUpdatedPod(pod *v1.Pod) (*v1.Pod, error) {
+	return pod, nil
+}
+
+func (fp fakePodPreemptor) DeletePod(pod *v1.Pod) error {
+	return nil
+}
+
+func (fp fakePodPreemptor) UpdatePodAnnotations(pod *v1.Pod, annots map[string]string) error {
+	return nil
+}
+
+func (fp fakePodPreemptor) RemoveNominatedNodeAnnotation(pod *v1.Pod) error {
 	return nil
 }
 
@@ -103,8 +121,8 @@ func (es mockScheduler) Prioritizers() []algorithm.PriorityConfig {
 	return nil
 }
 
-func (es mockScheduler) Preempt(pod *v1.Pod, nodeLister algorithm.NodeLister, scheduleErr error) (*v1.Node, []*v1.Pod, error) {
-	return nil, nil, nil
+func (es mockScheduler) Preempt(pod *v1.Pod, nodeLister algorithm.NodeLister, scheduleErr error) (*v1.Node, []*v1.Pod, []*v1.Pod, error) {
+	return nil, nil, nil, nil
 }
 
 func TestScheduler(t *testing.T) {
@@ -186,7 +204,7 @@ func TestScheduler(t *testing.T) {
 				NextPod: func() *v1.Pod {
 					return item.sendPod
 				},
-				Recorder: eventBroadcaster.NewRecorder(api.Scheme, v1.EventSource{Component: "scheduler"}),
+				Recorder: eventBroadcaster.NewRecorder(legacyscheme.Scheme, v1.EventSource{Component: "scheduler"}),
 			},
 		}
 
@@ -256,7 +274,7 @@ func TestSchedulerNoPhantomPodAfterExpire(t *testing.T) {
 	case <-waitPodExpireChan:
 	case <-time.After(wait.ForeverTestTimeout):
 		close(timeout)
-		t.Fatalf("timeout after %v", wait.ForeverTestTimeout)
+		t.Fatalf("timeout timeout in waiting pod expire after %v", wait.ForeverTestTimeout)
 	}
 
 	// We use conflicted pod ports to incur fit predicate failure if first pod not removed.
@@ -273,7 +291,7 @@ func TestSchedulerNoPhantomPodAfterExpire(t *testing.T) {
 			t.Errorf("binding want=%v, get=%v", expectBinding, b)
 		}
 	case <-time.After(wait.ForeverTestTimeout):
-		t.Fatalf("timeout after %v", wait.ForeverTestTimeout)
+		t.Fatalf("timeout in binding after %v", wait.ForeverTestTimeout)
 	}
 }
 
@@ -300,13 +318,14 @@ func TestSchedulerNoPhantomPodAfterDelete(t *testing.T) {
 	case err := <-errChan:
 		expectErr := &core.FitError{
 			Pod:              secondPod,
+			NumAllNodes:      1,
 			FailedPredicates: core.FailedPredicateMap{node.Name: []algorithm.PredicateFailureReason{predicates.ErrPodNotFitsHostPorts}},
 		}
 		if !reflect.DeepEqual(expectErr, err) {
 			t.Errorf("err want=%v, get=%v", expectErr, err)
 		}
 	case <-time.After(wait.ForeverTestTimeout):
-		t.Fatalf("timeout after %v", wait.ForeverTestTimeout)
+		t.Fatalf("timeout in fitting after %v", wait.ForeverTestTimeout)
 	}
 
 	// We mimic the workflow of cache behavior when a pod is removed by user.
@@ -333,7 +352,7 @@ func TestSchedulerNoPhantomPodAfterDelete(t *testing.T) {
 			t.Errorf("binding want=%v, get=%v", expectBinding, b)
 		}
 	case <-time.After(wait.ForeverTestTimeout):
-		t.Fatalf("timeout after %v", wait.ForeverTestTimeout)
+		t.Fatalf("timeout in binding after %v", wait.ForeverTestTimeout)
 	}
 }
 
@@ -484,6 +503,7 @@ func TestSchedulerFailedSchedulingReasons(t *testing.T) {
 	case err := <-errChan:
 		expectErr := &core.FitError{
 			Pod:              podWithTooBigResourceRequests,
+			NumAllNodes:      len(nodes),
 			FailedPredicates: failedPredicatesMap,
 		}
 		if len(fmt.Sprint(expectErr)) > 150 {
@@ -502,6 +522,7 @@ func TestSchedulerFailedSchedulingReasons(t *testing.T) {
 func setupTestScheduler(queuedPodStore *clientcache.FIFO, scache schedulercache.Cache, nodeLister schedulertesting.FakeNodeLister, predicateMap map[string]algorithm.FitPredicate) (*Scheduler, chan *v1.Binding, chan error) {
 	algo := core.NewGenericScheduler(
 		scache,
+		nil,
 		nil,
 		predicateMap,
 		algorithm.EmptyPredicateMetadataProducer,
@@ -527,6 +548,7 @@ func setupTestScheduler(queuedPodStore *clientcache.FIFO, scache schedulercache.
 			},
 			Recorder:            &record.FakeRecorder{},
 			PodConditionUpdater: fakePodConditionUpdater{},
+			PodPreemptor:        fakePodPreemptor{},
 		},
 	}
 
@@ -538,6 +560,7 @@ func setupTestScheduler(queuedPodStore *clientcache.FIFO, scache schedulercache.
 func setupTestSchedulerLongBindingWithRetry(queuedPodStore *clientcache.FIFO, scache schedulercache.Cache, nodeLister schedulertesting.FakeNodeLister, predicateMap map[string]algorithm.FitPredicate, stop chan struct{}, bindingTime time.Duration) (*Scheduler, chan *v1.Binding) {
 	algo := core.NewGenericScheduler(
 		scache,
+		nil,
 		nil,
 		predicateMap,
 		algorithm.EmptyPredicateMetadataProducer,
@@ -566,6 +589,7 @@ func setupTestSchedulerLongBindingWithRetry(queuedPodStore *clientcache.FIFO, sc
 			},
 			Recorder:            &record.FakeRecorder{},
 			PodConditionUpdater: fakePodConditionUpdater{},
+			PodPreemptor:        fakePodPreemptor{},
 			StopEverything:      stop,
 		},
 	}

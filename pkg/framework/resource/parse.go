@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
+	"k8s.io/kube-openapi/pkg/util/proto"
 	"k8s.io/kubectl/pkg/framework/internal/inject"
 	"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
 )
@@ -210,7 +211,7 @@ func (p *Parser) attachSubResources(
 	return nil
 }
 
-func (p *Parser) getOpenAPI(group, version, kind string) (openapi.Schema, bool) {
+func (p *Parser) getOpenAPI(group, version, kind string) (proto.Schema, bool) {
 	openapiSchema := p.resources.LookupResource(schema.GroupVersionKind{
 		group,
 		version,

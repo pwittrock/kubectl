@@ -17,8 +17,8 @@ limitations under the License.
 package resource
 
 import (
+	openapi "k8s.io/kube-openapi/pkg/util/proto"
 	fw "k8s.io/kubectl/pkg/framework/openapi"
-	"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
 )
 
 func hasField(sch openapi.Schema, path []string) bool {

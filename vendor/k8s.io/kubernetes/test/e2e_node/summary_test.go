@@ -97,6 +97,7 @@ var _ = framework.KubeDescribe("Summary API", func() {
 						"PageFaults":      bounded(1000, 1E9),
 						"MajorPageFaults": bounded(0, 100000),
 					}),
+					"Accelerators":       BeEmpty(),
 					"Rootfs":             BeNil(),
 					"Logs":               BeNil(),
 					"UserDefinedMetrics": BeEmpty(),
@@ -145,6 +146,7 @@ var _ = framework.KubeDescribe("Summary API", func() {
 							"PageFaults":      bounded(100, 1000000),
 							"MajorPageFaults": bounded(0, 10),
 						}),
+						"Accelerators": BeEmpty(),
 						"Rootfs": ptrMatchAllFields(gstruct.Fields{
 							"Time":           recent(maxStatsAge),
 							"AvailableBytes": fsCapacityBounds,
@@ -188,7 +190,17 @@ var _ = framework.KubeDescribe("Summary API", func() {
 						}),
 					}),
 				}),
+				"EphemeralStorage": ptrMatchAllFields(gstruct.Fields{
+					"Time":           recent(maxStatsAge),
+					"AvailableBytes": fsCapacityBounds,
+					"CapacityBytes":  fsCapacityBounds,
+					"UsedBytes":      bounded(framework.Kb, 21*framework.Mb),
+					"InodesFree":     bounded(1E4, 1E8),
+					"Inodes":         bounded(1E4, 1E8),
+					"InodesUsed":     bounded(0, 1E8),
+				}),
 			})
+
 			matchExpectations := ptrMatchAllFields(gstruct.Fields{
 				"Node": gstruct.MatchAllFields(gstruct.Fields{
 					"NodeName":         Equal(framework.TestContext.NodeName),
@@ -342,7 +354,6 @@ func recordSystemCgroupProcesses() {
 	}
 	cgroups := map[string]string{
 		"kubelet": cfg.KubeletCgroups,
-		"runtime": cfg.RuntimeCgroups,
 		"misc":    cfg.SystemCgroups,
 	}
 	for name, cgroup := range cgroups {

@@ -25,12 +25,14 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	cadvisorapiv2 "github.com/google/cadvisor/info/v2"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	critest "k8s.io/kubernetes/pkg/kubelet/apis/cri/testing"
 	runtimeapi "k8s.io/kubernetes/pkg/kubelet/apis/cri/v1alpha1/runtime"
 	statsapi "k8s.io/kubernetes/pkg/kubelet/apis/stats/v1alpha1"
 	cadvisortest "k8s.io/kubernetes/pkg/kubelet/cadvisor/testing"
 	kubecontainertest "k8s.io/kubernetes/pkg/kubelet/container/testing"
 	kubepodtest "k8s.io/kubernetes/pkg/kubelet/pod/testing"
+	serverstats "k8s.io/kubernetes/pkg/kubelet/server/stats"
 )
 
 func TestCRIListPodStats(t *testing.T) {
@@ -41,14 +43,20 @@ func TestCRIListPodStats(t *testing.T) {
 		rootFsInfo         = getTestFsInfo(1000)
 
 		sandbox0        = makeFakePodSandbox("sandbox0-name", "sandbox0-uid", "sandbox0-ns")
-		container0      = makeFakeContainer(sandbox0, "container0-name")
+		container0      = makeFakeContainer(sandbox0, "container0-name", 0, false)
 		containerStats0 = makeFakeContainerStats(container0, imageFsStorageUUID)
-		container1      = makeFakeContainer(sandbox0, "container1-name")
+		container1      = makeFakeContainer(sandbox0, "container1-name", 0, false)
 		containerStats1 = makeFakeContainerStats(container1, unknownStorageUUID)
 
 		sandbox1        = makeFakePodSandbox("sandbox1-name", "sandbox1-uid", "sandbox1-ns")
-		container2      = makeFakeContainer(sandbox1, "container2-name")
+		container2      = makeFakeContainer(sandbox1, "container2-name", 0, false)
 		containerStats2 = makeFakeContainerStats(container2, imageFsStorageUUID)
+
+		sandbox2        = makeFakePodSandbox("sandbox2-name", "sandbox2-uid", "sandbox2-ns")
+		container3      = makeFakeContainer(sandbox2, "container3-name", 0, true)
+		containerStats3 = makeFakeContainerStats(container3, imageFsStorageUUID)
+		container4      = makeFakeContainer(sandbox2, "container3-name", 1, false)
+		containerStats4 = makeFakeContainerStats(container4, imageFsStorageUUID)
 	)
 
 	var (
@@ -65,14 +73,21 @@ func TestCRIListPodStats(t *testing.T) {
 		On("GetFsInfoByFsUUID", imageFsStorageUUID).Return(imageFsInfo, nil).
 		On("GetFsInfoByFsUUID", unknownStorageUUID).Return(cadvisorapiv2.FsInfo{}, cadvisorfs.ErrNoSuchDevice)
 	fakeRuntimeService.SetFakeSandboxes([]*critest.FakePodSandbox{
-		sandbox0, sandbox1,
+		sandbox0, sandbox1, sandbox2,
 	})
 	fakeRuntimeService.SetFakeContainers([]*critest.FakeContainer{
-		container0, container1, container2,
+		container0, container1, container2, container3, container4,
 	})
 	fakeRuntimeService.SetFakeContainerStats([]*runtimeapi.ContainerStats{
-		containerStats0, containerStats1, containerStats2,
+		containerStats0, containerStats1, containerStats2, containerStats3, containerStats4,
 	})
+
+	ephemeralVolumes := makeFakeVolumeStats([]string{"ephVolume1, ephVolumes2"})
+	persistentVolumes := makeFakeVolumeStats([]string{"persisVolume1, persisVolumes2"})
+	resourceAnalyzer.podVolumeStats = serverstats.PodVolumeStats{
+		EphemeralVolumes:  ephemeralVolumes,
+		PersistentVolumes: persistentVolumes,
+	}
 
 	provider := NewCRIStatsProvider(
 		mockCadvisor,
@@ -85,7 +100,7 @@ func TestCRIListPodStats(t *testing.T) {
 	stats, err := provider.ListPodStats()
 	assert := assert.New(t)
 	assert.NoError(err)
-	assert.Equal(2, len(stats))
+	assert.Equal(3, len(stats))
 
 	podStatsMap := make(map[statsapi.PodReference]statsapi.PodStats)
 	for _, s := range stats {
@@ -96,30 +111,47 @@ func TestCRIListPodStats(t *testing.T) {
 	assert.Equal(sandbox0.CreatedAt, p0.StartTime.UnixNano())
 	assert.Equal(2, len(p0.Containers))
 
+	checkEphemeralStorageStats(assert, p0, ephemeralVolumes, []*runtimeapi.ContainerStats{containerStats0, containerStats1})
+
 	containerStatsMap := make(map[string]statsapi.ContainerStats)
 	for _, s := range p0.Containers {
 		containerStatsMap[s.Name] = s
 	}
-	c1 := containerStatsMap["container0-name"]
-	assert.Equal(container0.CreatedAt, c1.StartTime.UnixNano())
-	checkCRICPUAndMemoryStats(assert, c1, containerStats0)
-	checkCRIRootfsStats(assert, c1, containerStats0, &imageFsInfo)
+	c0 := containerStatsMap["container0-name"]
+	assert.Equal(container0.CreatedAt, c0.StartTime.UnixNano())
+	checkCRICPUAndMemoryStats(assert, c0, containerStats0)
+	checkCRIRootfsStats(assert, c0, containerStats0, &imageFsInfo)
+	checkCRILogsStats(assert, c0, &rootFsInfo)
+	c1 := containerStatsMap["container1-name"]
+	assert.Equal(container1.CreatedAt, c1.StartTime.UnixNano())
+	checkCRICPUAndMemoryStats(assert, c1, containerStats1)
+	checkCRIRootfsStats(assert, c1, containerStats1, nil)
 	checkCRILogsStats(assert, c1, &rootFsInfo)
-	c2 := containerStatsMap["container1-name"]
-	assert.Equal(container1.CreatedAt, c2.StartTime.UnixNano())
-	checkCRICPUAndMemoryStats(assert, c2, containerStats1)
-	checkCRIRootfsStats(assert, c2, containerStats1, nil)
-	checkCRILogsStats(assert, c2, &rootFsInfo)
 
 	p1 := podStatsMap[statsapi.PodReference{Name: "sandbox1-name", UID: "sandbox1-uid", Namespace: "sandbox1-ns"}]
 	assert.Equal(sandbox1.CreatedAt, p1.StartTime.UnixNano())
 	assert.Equal(1, len(p1.Containers))
 
-	c3 := p1.Containers[0]
-	assert.Equal("container2-name", c3.Name)
-	assert.Equal(container2.CreatedAt, c3.StartTime.UnixNano())
-	checkCRICPUAndMemoryStats(assert, c3, containerStats2)
-	checkCRIRootfsStats(assert, c3, containerStats2, &imageFsInfo)
+	checkEphemeralStorageStats(assert, p1, ephemeralVolumes, []*runtimeapi.ContainerStats{containerStats2})
+	c2 := p1.Containers[0]
+	assert.Equal("container2-name", c2.Name)
+	assert.Equal(container2.CreatedAt, c2.StartTime.UnixNano())
+	checkCRICPUAndMemoryStats(assert, c2, containerStats2)
+	checkCRIRootfsStats(assert, c2, containerStats2, &imageFsInfo)
+	checkCRILogsStats(assert, c2, &rootFsInfo)
+
+	p2 := podStatsMap[statsapi.PodReference{Name: "sandbox2-name", UID: "sandbox2-uid", Namespace: "sandbox2-ns"}]
+	assert.Equal(sandbox2.CreatedAt, p2.StartTime.UnixNano())
+	assert.Equal(1, len(p2.Containers))
+
+	checkEphemeralStorageStats(assert, p2, ephemeralVolumes, []*runtimeapi.ContainerStats{containerStats4})
+
+	c3 := p2.Containers[0]
+	assert.Equal("container3-name", c3.Name)
+	assert.Equal(container4.CreatedAt, c3.StartTime.UnixNano())
+	checkCRICPUAndMemoryStats(assert, c3, containerStats4)
+	checkCRIRootfsStats(assert, c3, containerStats4, &imageFsInfo)
+
 	checkCRILogsStats(assert, c3, &rootFsInfo)
 
 	mockCadvisor.AssertExpectations(t)
@@ -184,43 +216,59 @@ func makeFakePodSandbox(name, uid, namespace string) *critest.FakePodSandbox {
 	return p
 }
 
-func makeFakeContainer(sandbox *critest.FakePodSandbox, name string) *critest.FakeContainer {
+func makeFakeContainer(sandbox *critest.FakePodSandbox, name string, attempt uint32, terminated bool) *critest.FakeContainer {
 	sandboxID := sandbox.PodSandboxStatus.Id
 	c := &critest.FakeContainer{
 		SandboxID: sandboxID,
 		ContainerStatus: runtimeapi.ContainerStatus{
-			Metadata:  &runtimeapi.ContainerMetadata{Name: name},
+			Metadata:  &runtimeapi.ContainerMetadata{Name: name, Attempt: attempt},
 			Image:     &runtimeapi.ImageSpec{},
 			ImageRef:  "fake-image-ref",
 			CreatedAt: time.Now().UnixNano(),
-			State:     runtimeapi.ContainerState_CONTAINER_RUNNING,
 		},
+	}
+	c.ContainerStatus.Labels = map[string]string{
+		"io.kubernetes.pod.name":       sandbox.Metadata.Name,
+		"io.kubernetes.pod.uid":        sandbox.Metadata.Uid,
+		"io.kubernetes.pod.namespace":  sandbox.Metadata.Namespace,
+		"io.kubernetes.container.name": name,
+	}
+	if terminated {
+		c.ContainerStatus.State = runtimeapi.ContainerState_CONTAINER_EXITED
+	} else {
+		c.ContainerStatus.State = runtimeapi.ContainerState_CONTAINER_RUNNING
 	}
 	c.ContainerStatus.Id = critest.BuildContainerName(c.ContainerStatus.Metadata, sandboxID)
 	return c
 }
 
 func makeFakeContainerStats(container *critest.FakeContainer, imageFsUUID string) *runtimeapi.ContainerStats {
-	return &runtimeapi.ContainerStats{
+	containerStats := &runtimeapi.ContainerStats{
 		Attributes: &runtimeapi.ContainerAttributes{
 			Id:       container.ContainerStatus.Id,
 			Metadata: container.ContainerStatus.Metadata,
 		},
-		Cpu: &runtimeapi.CpuUsage{
-			Timestamp:            time.Now().UnixNano(),
-			UsageCoreNanoSeconds: &runtimeapi.UInt64Value{Value: rand.Uint64()},
-		},
-		Memory: &runtimeapi.MemoryUsage{
-			Timestamp:       time.Now().UnixNano(),
-			WorkingSetBytes: &runtimeapi.UInt64Value{Value: rand.Uint64()},
-		},
 		WritableLayer: &runtimeapi.FilesystemUsage{
 			Timestamp:  time.Now().UnixNano(),
 			StorageId:  &runtimeapi.StorageIdentifier{Uuid: imageFsUUID},
-			UsedBytes:  &runtimeapi.UInt64Value{Value: rand.Uint64()},
-			InodesUsed: &runtimeapi.UInt64Value{Value: rand.Uint64()},
+			UsedBytes:  &runtimeapi.UInt64Value{Value: rand.Uint64() / 100},
+			InodesUsed: &runtimeapi.UInt64Value{Value: rand.Uint64() / 100},
 		},
 	}
+	if container.State == runtimeapi.ContainerState_CONTAINER_EXITED {
+		containerStats.Cpu = nil
+		containerStats.Memory = nil
+	} else {
+		containerStats.Cpu = &runtimeapi.CpuUsage{
+			Timestamp:            time.Now().UnixNano(),
+			UsageCoreNanoSeconds: &runtimeapi.UInt64Value{Value: rand.Uint64()},
+		}
+		containerStats.Memory = &runtimeapi.MemoryUsage{
+			Timestamp:       time.Now().UnixNano(),
+			WorkingSetBytes: &runtimeapi.UInt64Value{Value: rand.Uint64()},
+		}
+	}
+	return containerStats
 }
 
 func makeFakeImageFsUsage(fsUUID string) *runtimeapi.FilesystemUsage {
@@ -232,16 +280,42 @@ func makeFakeImageFsUsage(fsUUID string) *runtimeapi.FilesystemUsage {
 	}
 }
 
+func makeFakeVolumeStats(volumeNames []string) []statsapi.VolumeStats {
+	volumes := make([]statsapi.VolumeStats, len(volumeNames))
+	availableBytes := rand.Uint64()
+	capacityBytes := rand.Uint64()
+	usedBytes := rand.Uint64() / 100
+	inodes := rand.Uint64()
+	inodesFree := rand.Uint64()
+	inodesUsed := rand.Uint64() / 100
+	for i, name := range volumeNames {
+		fsStats := statsapi.FsStats{
+			Time:           metav1.NewTime(time.Now()),
+			AvailableBytes: &availableBytes,
+			CapacityBytes:  &capacityBytes,
+			UsedBytes:      &usedBytes,
+			Inodes:         &inodes,
+			InodesFree:     &inodesFree,
+			InodesUsed:     &inodesUsed,
+		}
+		volumes[i] = statsapi.VolumeStats{
+			FsStats: fsStats,
+			Name:    name,
+		}
+	}
+	return volumes
+}
+
 func checkCRICPUAndMemoryStats(assert *assert.Assertions, actual statsapi.ContainerStats, cs *runtimeapi.ContainerStats) {
 	assert.Equal(cs.Cpu.Timestamp, actual.CPU.Time.UnixNano())
 	assert.Equal(cs.Cpu.UsageCoreNanoSeconds.Value, *actual.CPU.UsageCoreNanoSeconds)
-	assert.Nil(actual.CPU.UsageNanoCores)
+	assert.Zero(*actual.CPU.UsageNanoCores)
 
 	assert.Equal(cs.Memory.Timestamp, actual.Memory.Time.UnixNano())
 	assert.Nil(actual.Memory.AvailableBytes)
 	assert.Nil(actual.Memory.UsageBytes)
 	assert.Equal(cs.Memory.WorkingSetBytes.Value, *actual.Memory.WorkingSetBytes)
-	assert.Nil(actual.Memory.RSSBytes)
+	assert.Zero(*actual.Memory.RSSBytes)
 	assert.Nil(actual.Memory.PageFaults)
 	assert.Nil(actual.Memory.MajorPageFaults)
 }
@@ -271,4 +345,19 @@ func checkCRILogsStats(assert *assert.Assertions, actual statsapi.ContainerStats
 	assert.Equal(*rootFsInfo.Inodes, *actual.Logs.Inodes)
 	assert.Nil(actual.Logs.UsedBytes)
 	assert.Nil(actual.Logs.InodesUsed)
+}
+
+func checkEphemeralStorageStats(assert *assert.Assertions, actual statsapi.PodStats, volumes []statsapi.VolumeStats, containers []*runtimeapi.ContainerStats) {
+	var totalUsed, inodesUsed uint64
+	for _, container := range containers {
+		totalUsed = totalUsed + container.WritableLayer.UsedBytes.Value
+		inodesUsed = inodesUsed + container.WritableLayer.InodesUsed.Value
+	}
+
+	for _, volume := range volumes {
+		totalUsed = totalUsed + *volume.FsStats.UsedBytes
+		inodesUsed = inodesUsed + *volume.FsStats.InodesUsed
+	}
+	assert.Equal(int(*actual.EphemeralStorage.UsedBytes), int(totalUsed))
+	assert.Equal(int(*actual.EphemeralStorage.InodesUsed), int(inodesUsed))
 }

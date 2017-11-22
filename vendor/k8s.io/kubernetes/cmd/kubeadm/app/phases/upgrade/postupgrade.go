@@ -17,22 +17,24 @@ limitations under the License.
 package upgrade
 
 import (
+	"fmt"
+
 	"k8s.io/apimachinery/pkg/util/errors"
 	clientset "k8s.io/client-go/kubernetes"
 	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
-	"k8s.io/kubernetes/cmd/kubeadm/app/constants"
+	kubeadmapiext "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1alpha1"
 	"k8s.io/kubernetes/cmd/kubeadm/app/phases/addons/dns"
 	"k8s.io/kubernetes/cmd/kubeadm/app/phases/addons/proxy"
-	"k8s.io/kubernetes/cmd/kubeadm/app/phases/apiconfig"
 	"k8s.io/kubernetes/cmd/kubeadm/app/phases/bootstraptoken/clusterinfo"
 	nodebootstraptoken "k8s.io/kubernetes/cmd/kubeadm/app/phases/bootstraptoken/node"
+	certsphase "k8s.io/kubernetes/cmd/kubeadm/app/phases/certs"
 	"k8s.io/kubernetes/cmd/kubeadm/app/phases/uploadconfig"
 	"k8s.io/kubernetes/pkg/util/version"
 )
 
 // PerformPostUpgradeTasks runs nearly the same functions as 'kubeadm init' would do
 // Note that the markmaster phase is left out, not needed, and no token is created as that doesn't belong to the upgrade
-func PerformPostUpgradeTasks(client clientset.Interface, cfg *kubeadmapi.MasterConfiguration, k8sVersion *version.Version) error {
+func PerformPostUpgradeTasks(client clientset.Interface, cfg *kubeadmapi.MasterConfiguration, newK8sVer *version.Version) error {
 	errs := []error{}
 
 	// Upload currently used configuration to the cluster
@@ -42,37 +44,18 @@ func PerformPostUpgradeTasks(client clientset.Interface, cfg *kubeadmapi.MasterC
 		errs = append(errs, err)
 	}
 
-	// Handle Bootstrap Tokens graduating to from alpha to beta in the v1.7 -> v1.8 upgrade
-	// That transition requires two minor changes
-
-	// Remove the old ClusterRoleBinding for approving if it already exists due to the reasons outlined in the comment below
-	if err := deleteOldApprovalClusterRoleBindingIfExists(client, k8sVersion); err != nil {
-		errs = append(errs, err)
-	}
-	// Upgrade the Bootstrap Tokens' authentication group
-	if err := upgradeBootstrapTokens(client, k8sVersion); err != nil {
-		errs = append(errs, err)
-	}
-	// Upgrade the cluster-info RBAC rules
-	if err := deleteWronglyNamedClusterInfoRBACRules(client, k8sVersion); err != nil {
-		errs = append(errs, err)
-	}
-
 	// Create/update RBAC rules that makes the bootstrap tokens able to post CSRs
-	if err := nodebootstraptoken.AllowBootstrapTokensToPostCSRs(client, k8sVersion); err != nil {
+	if err := nodebootstraptoken.AllowBootstrapTokensToPostCSRs(client); err != nil {
 		errs = append(errs, err)
 	}
 
-	// Not needed for 1.7 upgrades
-	if k8sVersion.AtLeast(constants.MinimumCSRAutoApprovalClusterRolesVersion) {
-		// Create/update RBAC rules that makes the bootstrap tokens able to get their CSRs approved automatically
-		if err := nodebootstraptoken.AutoApproveNodeBootstrapTokens(client, k8sVersion); err != nil {
-			errs = append(errs, err)
-		}
+	// Create/update RBAC rules that makes the bootstrap tokens able to get their CSRs approved automatically
+	if err := nodebootstraptoken.AutoApproveNodeBootstrapTokens(client); err != nil {
+		errs = append(errs, err)
 	}
 
 	// Create/update RBAC rules that makes the 1.8.0+ nodes to rotate certificates and get their CSRs approved automatically
-	if err := nodebootstraptoken.AutoApproveNodeCertificateRotation(client, k8sVersion); err != nil {
+	if err := nodebootstraptoken.AutoApproveNodeCertificateRotation(client); err != nil {
 		errs = append(errs, err)
 	}
 
@@ -81,17 +64,24 @@ func PerformPostUpgradeTasks(client clientset.Interface, cfg *kubeadmapi.MasterC
 	// if err := clusterinfo.CreateBootstrapConfigMapIfNotExists(client, kubeadmconstants.GetAdminKubeConfigPath()); err != nil {
 	// 	return err
 	//}
-	// Not needed for 1.7 upgrades
-	if k8sVersion.AtLeast(constants.UseEnableBootstrapTokenAuthFlagVersion) {
-		// Create/update RBAC rules that makes the cluster-info ConfigMap reachable
-		if err := clusterinfo.CreateClusterInfoRBACRules(client); err != nil {
-			errs = append(errs, err)
-		}
+	// Create/update RBAC rules that makes the cluster-info ConfigMap reachable
+	if err := clusterinfo.CreateClusterInfoRBACRules(client); err != nil {
+		errs = append(errs, err)
 	}
 
-	// TODO: This call is deprecated
-	if err := apiconfig.CreateRBACRules(client, k8sVersion); err != nil {
-		errs = append(errs, err)
+	certAndKeyDir := kubeadmapiext.DefaultCertificatesDir
+	shouldBackup, err := shouldBackupAPIServerCertAndKey(certAndKeyDir, newK8sVer)
+	// Don't fail the upgrade phase if failing to determine to backup kube-apiserver cert and key.
+	if err != nil {
+		fmt.Printf("[postupgrade] WARNING: failed to determine to backup kube-apiserver cert and key: %v", err)
+	} else if shouldBackup {
+		// Don't fail the upgrade phase if failing to backup kube-apiserver cert and key.
+		if err := backupAPIServerCertAndKey(certAndKeyDir); err != nil {
+			fmt.Printf("[postupgrade] WARNING: failed to backup kube-apiserver cert and key: %v", err)
+		}
+		if err := certsphase.CreateAPIServerCertAndKeyFiles(cfg); err != nil {
+			errs = append(errs, err)
+		}
 	}
 
 	// Upgrade kube-dns and kube-proxy

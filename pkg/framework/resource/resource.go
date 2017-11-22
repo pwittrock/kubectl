@@ -19,7 +19,7 @@ package resource
 import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
+	openapi "k8s.io/kube-openapi/pkg/util/proto"
 )
 
 // Resource is an API Resource

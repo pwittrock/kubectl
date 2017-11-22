@@ -22,7 +22,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	//fw "k8s.io/kubectl/pkg/framework/openapi"
 	"fmt"
-	"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
+	//"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
+	openapi "k8s.io/kube-openapi/pkg/util/proto"
 )
 
 func newObjectKindVisitor(cmd *cobra.Command, name string) *objectFieldVisitor {

@@ -19,7 +19,7 @@ package openapi
 import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
+	"k8s.io/kube-openapi/pkg/util/proto"
 )
 
 type SubResource struct {
@@ -27,5 +27,5 @@ type SubResource struct {
 	resourceGroupVersionKind schema.GroupVersionKind
 	parent                   v1.APIResource
 	apiGroupVersion          schema.GroupVersion
-	openapiSchema            openapi.Schema
+	openapiSchema            proto.Schema
 }

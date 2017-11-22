@@ -35,8 +35,8 @@
 
 [[constraint]]
   name = "k8s.io/kubernetes"
-  version = "1.8.3"
+  branch = "master"
 
 [[constraint]]
   name = "k8s.io/client-go"
-  version = "kubernetes-1.8.2"
+  branch = "master"

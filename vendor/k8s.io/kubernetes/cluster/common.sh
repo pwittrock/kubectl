@@ -160,20 +160,6 @@ function clear-kubeconfig() {
   echo "Cleared config for ${CONTEXT} from ${KUBECONFIG}"
 }
 
-# Creates a kubeconfig file with the credentials for only the current-context
-# cluster. This is used by federation to create secrets in test setup.
-function create-kubeconfig-for-federation() {
-  if [[ "${FEDERATION:-}" == "true" ]]; then
-    echo "creating kubeconfig for federation secret"
-    local kubectl="${KUBE_ROOT}/cluster/kubectl.sh"
-    local cc=$("${kubectl}" config view -o jsonpath='{.current-context}')
-    KUBECONFIG_DIR=$(dirname ${KUBECONFIG:-$DEFAULT_KUBECONFIG})
-    KUBECONFIG_PATH="${KUBECONFIG_DIR}/federation/kubernetes-apiserver/${cc}"
-    mkdir -p "${KUBECONFIG_PATH}"
-    "${kubectl}" config view --minify --flatten > "${KUBECONFIG_PATH}/kubeconfig"
-  fi
-}
-
 function tear_down_alive_resources() {
   local kubectl="${KUBE_ROOT}/cluster/kubectl.sh"
   "${kubectl}" delete deployments --all || true
@@ -680,6 +666,10 @@ PROMETHEUS_TO_SD_ENDPOINT: $(yaml-quote ${PROMETHEUS_TO_SD_ENDPOINT:-})
 PROMETHEUS_TO_SD_PREFIX: $(yaml-quote ${PROMETHEUS_TO_SD_PREFIX:-})
 ENABLE_PROMETHEUS_TO_SD: $(yaml-quote ${ENABLE_PROMETHEUS_TO_SD:-false})
 ENABLE_POD_PRIORITY: $(yaml-quote ${ENABLE_POD_PRIORITY:-})
+CONTAINER_RUNTIME: $(yaml-quote ${CONTAINER_RUNTIME:-})
+CONTAINER_RUNTIME_ENDPOINT: $(yaml-quote ${CONTAINER_RUNTIME_ENDPOINT:-})
+NODE_LOCAL_SSDS_EXT: $(yaml-quote ${NODE_LOCAL_SSDS_EXT:-})
+LOAD_IMAGE_COMMAND: $(yaml-quote ${LOAD_IMAGE_COMMAND:-})
 EOF
   if [ -n "${KUBELET_PORT:-}" ]; then
     cat >>$file <<EOF
@@ -753,16 +743,6 @@ EOF
 ENABLE_CUSTOM_METRICS: $(yaml-quote ${ENABLE_CUSTOM_METRICS})
 EOF
   fi
-  if [ -n "${ENABLE_METADATA_PROXY:-}" ]; then
-    cat >>$file <<EOF
-ENABLE_METADATA_PROXY: $(yaml-quote ${ENABLE_METADATA_PROXY})
-EOF
-  fi
-  if [ -n "${KUBE_FIREWALL_METADATA_SERVER:-}" ]; then
-    cat >>$file <<EOF
-KUBE_FIREWALL_METADATA_SERVER: $(yaml-quote ${KUBE_FIREWALL_METADATA_SERVER})
-EOF
-  fi
   if [ -n "${FEATURE_GATES:-}" ]; then
     cat >>$file <<EOF
 FEATURE_GATES: $(yaml-quote ${FEATURE_GATES})
@@ -831,6 +811,12 @@ EOF
 ETCD_IMAGE: $(yaml-quote ${ETCD_IMAGE})
 EOF
     fi
+    # ETCD_DOCKER_REPOSITORY (if set) allows to use a custom etcd docker repository to pull the etcd image from.
+    if [ -n "${ETCD_DOCKER_REPOSITORY:-}" ]; then
+      cat >>$file <<EOF
+ETCD_DOCKER_REPOSITORY: $(yaml-quote ${ETCD_DOCKER_REPOSITORY})
+EOF
+    fi
     # ETCD_VERSION (if set) allows you to use custom version of etcd.
     # The main purpose of using it may be rollback of etcd v3 API,
     # where we need 3.0.* image, but are rolling back to 2.3.7.
@@ -894,6 +880,16 @@ EOF
 CLUSTER_SIGNING_DURATION: $(yaml-quote ${CLUSTER_SIGNING_DURATION})
 EOF
     fi
+    if [[ "${NODE_ACCELERATORS:-}" == *"type=nvidia"* ]]; then
+      cat >>$file <<EOF
+ENABLE_NVIDIA_GPU_DEVICE_PLUGIN: $(yaml-quote "true")
+EOF
+    fi
+    if [ -n "${ADDON_MANAGER_LEADER_ELECTION:-}" ]; then
+      cat >>$file <<EOF
+ADDON_MANAGER_LEADER_ELECTION: $(yaml-quote ${ADDON_MANAGER_LEADER_ELECTION})
+EOF
+    fi
 
   else
     # Node-only env vars.
@@ -917,12 +913,17 @@ EOF
       cat >>$file <<EOF
 NODE_LABELS: $(yaml-quote ${NODE_LABELS})
 EOF
-    fi
+  fi
+  if [ -n "${NON_MASTER_NODE_LABELS:-}" ]; then
+    cat >>$file <<EOF
+NON_MASTER_NODE_LABELS: $(yaml-quote ${NON_MASTER_NODE_LABELS})
+EOF
+  fi
   if [ -n "${EVICTION_HARD:-}" ]; then
       cat >>$file <<EOF
 EVICTION_HARD: $(yaml-quote ${EVICTION_HARD})
 EOF
-    fi
+  fi
   if [[ "${master}" == "true" && "${MASTER_OS_DISTRIBUTION}" == "container-linux" ]] || \
      [[ "${master}" == "false" && "${NODE_OS_DISTRIBUTION}" == "container-linux" ]]; then
     # Container-Linux-only env vars. TODO(yifan): Make them available on other distros.
@@ -941,17 +942,6 @@ AUTOSCALER_EXPANDER_CONFIG: $(yaml-quote ${AUTOSCALER_EXPANDER_CONFIG})
 EOF
   fi
 
-  # Federation specific environment variables.
-  if [[ -n "${FEDERATION:-}" ]]; then
-    cat >>$file <<EOF
-FEDERATION: $(yaml-quote ${FEDERATION})
-EOF
-  fi
-  if [ -n "${FEDERATION_NAME:-}" ]; then
-    cat >>$file <<EOF
-FEDERATION_NAME: $(yaml-quote ${FEDERATION_NAME})
-EOF
-  fi
   if [ -n "${DNS_ZONE_NAME:-}" ]; then
     cat >>$file <<EOF
 DNS_ZONE_NAME: $(yaml-quote ${DNS_ZONE_NAME})
@@ -1023,7 +1013,6 @@ function create-certs {
   PRIMARY_CN="${primary_cn}" SANS="${sans}" generate-certs
   AGGREGATOR_PRIMARY_CN="${primary_cn}" AGGREGATOR_SANS="${sans}" generate-aggregator-certs
 
-  CERT_DIR="${KUBE_TEMP}/easy-rsa-master/easyrsa3"
   # By default, linux wraps base64 output every 76 cols, so we use 'tr -d' to remove whitespaces.
   # Note 'base64 -w0' doesn't work on Mac OS X, which has different flags.
   CA_KEY_BASE64=$(cat "${CERT_DIR}/pki/private/ca.key" | base64 | tr -d '\r\n')
@@ -1040,13 +1029,20 @@ function create-certs {
   # Setting up an addition directory (beyond pki) as it is the simplest way to
   # ensure we get a different CA pair to sign the proxy-client certs and which
   # we can send CA public key to the user-apiserver to validate communication.
-  AGGREGATOR_CERT_DIR="${KUBE_TEMP}/easy-rsa-master/aggregator"
   AGGREGATOR_CA_KEY_BASE64=$(cat "${AGGREGATOR_CERT_DIR}/pki/private/ca.key" | base64 | tr -d '\r\n')
   REQUESTHEADER_CA_CERT_BASE64=$(cat "${AGGREGATOR_CERT_DIR}/pki/ca.crt" | base64 | tr -d '\r\n')
   PROXY_CLIENT_CERT_BASE64=$(cat "${AGGREGATOR_CERT_DIR}/pki/issued/proxy-client.crt" | base64 | tr -d '\r\n')
   PROXY_CLIENT_KEY_BASE64=$(cat "${AGGREGATOR_CERT_DIR}/pki/private/proxy-client.key" | base64 | tr -d '\r\n')
 }
 
+# Set up easy-rsa directory structure.
+#
+# Assumed vars
+#   KUBE_TEMP
+#
+# Vars set:
+#   CERT_DIR
+#   AGGREGATOR_CERT_DIR
 function setup-easyrsa {
   local -r cert_create_debug_output=$(mktemp "${KUBE_TEMP}/cert_create_debug_output.XXX")
   # Note: This was heavily cribbed from make-ca-cert.sh
@@ -1057,21 +1053,25 @@ function setup-easyrsa {
     mkdir easy-rsa-master/kubelet
     cp -r easy-rsa-master/easyrsa3/* easy-rsa-master/kubelet
     mkdir easy-rsa-master/aggregator
-    cp -r easy-rsa-master/easyrsa3/* easy-rsa-master/aggregator) &>${cert_create_debug_output} || {
-    # If there was an error in the subshell, just die.
-    # TODO(roberthbailey): add better error handling here
+    cp -r easy-rsa-master/easyrsa3/* easy-rsa-master/aggregator) &>${cert_create_debug_output} || true
+  CERT_DIR="${KUBE_TEMP}/easy-rsa-master/easyrsa3"
+  AGGREGATOR_CERT_DIR="${KUBE_TEMP}/easy-rsa-master/aggregator"
+  if [ ! -x "${CERT_DIR}/easyrsa" -o ! -x "${AGGREGATOR_CERT_DIR}/easyrsa" ]; then
+    # TODO(roberthbailey,porridge): add better error handling here,
+    # see https://github.com/kubernetes/kubernetes/issues/55229
     cat "${cert_create_debug_output}" >&2
     echo "=== Failed to setup easy-rsa: Aborting ===" >&2
     exit 2
-  }
+  fi
 }
 
 # Runs the easy RSA commands to generate certificate files.
-# The generated files are at ${KUBE_TEMP}/easy-rsa-master/easyrsa3
+# The generated files are IN ${CERT_DIR}
 #
 # Assumed vars
 #   KUBE_TEMP
 #   MASTER_NAME
+#   CERT_DIR
 #   PRIMARY_CN: Primary canonical name
 #   SANS: Subject alternate names
 #
@@ -1080,7 +1080,7 @@ function generate-certs {
   local -r cert_create_debug_output=$(mktemp "${KUBE_TEMP}/cert_create_debug_output.XXX")
   # Note: This was heavily cribbed from make-ca-cert.sh
   (set -x
-    cd "${KUBE_TEMP}/easy-rsa-master/easyrsa3"
+    cd "${CERT_DIR}"
     ./easyrsa init-pki
     # this puts the cert into pki/ca.crt and the key into pki/private/ca.key
     ./easyrsa --batch "--req-cn=${PRIMARY_CN}@$(date +%s)" build-ca nopass
@@ -1101,21 +1101,42 @@ function generate-certs {
     ./easyrsa --dn-mode=org \
       --req-cn=kubecfg --req-org=system:masters \
       --req-c= --req-st= --req-city= --req-email= --req-ou= \
-      build-client-full kubecfg nopass) &>${cert_create_debug_output} || {
-    # If there was an error in the subshell, just die.
-    # TODO(roberthbailey): add better error handling here
+      build-client-full kubecfg nopass) &>${cert_create_debug_output} || true
+  local output_file_missing=0
+  local output_file
+  for output_file in \
+    "${CERT_DIR}/pki/private/ca.key" \
+    "${CERT_DIR}/pki/ca.crt" \
+    "${CERT_DIR}/pki/issued/${MASTER_NAME}.crt" \
+    "${CERT_DIR}/pki/private/${MASTER_NAME}.key" \
+    "${CERT_DIR}/pki/issued/kubelet.crt" \
+    "${CERT_DIR}/pki/private/kubelet.key" \
+    "${CERT_DIR}/pki/issued/kubecfg.crt" \
+    "${CERT_DIR}/pki/private/kubecfg.key" \
+    "${CERT_DIR}/pki/issued/kube-apiserver.crt" \
+    "${CERT_DIR}/pki/private/kube-apiserver.key"
+  do
+    if [[ ! -s "${output_file}" ]]; then
+      echo "Expected file ${output_file} not created" >&2
+      output_file_missing=1
+    fi
+  done
+  if (( $output_file_missing )); then
+    # TODO(roberthbailey,porridge): add better error handling here,
+    # see https://github.com/kubernetes/kubernetes/issues/55229
     cat "${cert_create_debug_output}" >&2
     echo "=== Failed to generate master certificates: Aborting ===" >&2
     exit 2
-  }
+  fi
 }
 
 # Runs the easy RSA commands to generate aggregator certificate files.
-# The generated files are at ${KUBE_TEMP}/easy-rsa-master/aggregator
+# The generated files are in ${AGGREGATOR_CERT_DIR}
 #
 # Assumed vars
 #   KUBE_TEMP
 #   AGGREGATOR_MASTER_NAME
+#   AGGREGATOR_CERT_DIR
 #   AGGREGATOR_PRIMARY_CN: Primary canonical name
 #   AGGREGATOR_SANS: Subject alternate names
 #
@@ -1145,13 +1166,27 @@ function generate-aggregator-certs {
     ./easyrsa --dn-mode=org \
       --req-cn=proxy-clientcfg --req-org=system:aggregator \
       --req-c= --req-st= --req-city= --req-email= --req-ou= \
-      build-client-full proxy-clientcfg nopass) &>${cert_create_debug_output} || {
-    # If there was an error in the subshell, just die.
-    # TODO(roberthbailey): add better error handling here
+      build-client-full proxy-clientcfg nopass) &>${cert_create_debug_output} || true
+  local output_file_missing=0
+  local output_file
+  for output_file in \
+    "${AGGREGATOR_CERT_DIR}/pki/private/ca.key" \
+    "${AGGREGATOR_CERT_DIR}/pki/ca.crt" \
+    "${AGGREGATOR_CERT_DIR}/pki/issued/proxy-client.crt" \
+    "${AGGREGATOR_CERT_DIR}/pki/private/proxy-client.key"
+  do
+    if [[ ! -s "${output_file}" ]]; then
+      echo "Expected file ${output_file} not created" >&2
+      output_file_missing=1
+    fi
+  done
+  if (( $output_file_missing )); then
+    # TODO(roberthbailey,porridge): add better error handling here,
+    # see https://github.com/kubernetes/kubernetes/issues/55229
     cat "${cert_create_debug_output}" >&2
     echo "=== Failed to generate aggregator certificates: Aborting ===" >&2
     exit 2
-  }
+  fi
 }
 
 # Run the cfssl command to generates certificate files for etcd service, the
