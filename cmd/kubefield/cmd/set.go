@@ -17,12 +17,16 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
+	"k8s.io/kubectl/pkg/framework"
 	"k8s.io/kubectl/pkg/framework/resource"
 	"k8s.io/kubectl/pkg/framework/resource/flags"
-	_ "k8s.io/kubernetes/pkg/kubectl/apply"
+	"k8s.io/kubernetes/pkg/kubectl/apply/parse"
+	"k8s.io/kubernetes/pkg/kubectl/apply/strategy"
 )
 
 // setCmd represents the set command
@@ -87,8 +91,56 @@ func init() {
 			}
 
 			fcmd.Run = func(cmd *cobra.Command, args []string) {
-				value := fn()
+				var value interface{}
 				var out []byte
+
+				file := os.Stdin
+				fi, err := file.Stat()
+				if err != nil {
+					fmt.Println("file.Stat()", err)
+				}
+				size := fi.Size()
+
+				if size > 0 {
+					// Read the file to be patched from the stdin
+					in, err := ioutil.ReadAll(os.Stdin)
+					if err != nil {
+						panic(err)
+					}
+					remote := map[string]interface{}{}
+					json.Unmarshal(in, &remote)
+
+					// Copy the apiVersion and kind since merge expects them
+					local := fn()
+					local["apiVersion"] = remote["apiVersion"]
+					local["kind"] = remote["kind"]
+
+					// Roundtrip to get rid of points, which merge doesn't handle
+					tmp, err := json.Marshal(local)
+					if err != nil {
+						panic(err)
+					}
+					local = map[string]interface{}{}
+					err = json.Unmarshal(tmp, &local)
+					if err != nil {
+						panic(err)
+					}
+
+					// Merge the patch into the file read from stdin
+					factory := framework.Factory()
+					elementParse := parse.Factory{factory.GetResources()}
+					elem, err := elementParse.CreateElement(local, local, remote)
+					if err != nil {
+						panic(err)
+					}
+					result, err := elem.Merge(strategy.Create(strategy.Options{}))
+					if err != nil {
+						panic(err)
+					}
+					value = result.MergedResult
+				} else {
+					value = fn()
+				}
 
 				if *output == "yaml" {
 					out, err = yaml.Marshal(value)
@@ -96,12 +148,12 @@ func init() {
 						panic(err)
 					}
 				} else {
-					out, err = json.Marshal(value)
+					out, err = json.MarshalIndent(value, "", "    ")
 					if err != nil {
 						panic(err)
 					}
 				}
-				fmt.Printf("%s\n", out)
+				fmt.Printf("%s", out)
 			}
 		}
 
