@@ -20,9 +20,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/spf13/cobra"
-	//"gopkg.in/yaml.v2"
 	"github.com/ghodss/yaml"
+	"github.com/spf13/cobra"
 	"k8s.io/kubectl/pkg/framework"
 	"k8s.io/kubectl/pkg/framework/resource"
 	"k8s.io/kubectl/pkg/framework/resource/flags"
