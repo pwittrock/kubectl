@@ -111,17 +111,6 @@ func (visitor *patchFieldVisitor) VisitKind(k *openapi.Kind) {
 			value, _ := ov.field()
 			return value
 		}
-
-		//value := visitor.cmd.Flags().String(visitor.path[0], "", k.Description)
-		//visitor.resource = func() interface{} {
-		//	if len(*value) > 0 {
-		//		err := json.Unmarshal([]byte(*value), &resource)
-		//		if err != nil {
-		//			panic(err)
-		//		}
-		//	}
-		//	return resource
-		//}
 		return
 	}
 
@@ -176,17 +165,6 @@ func (visitor *patchFieldVisitor) VisitPrimitive(p *openapi.Primitive) {
 
 func (visitor *patchFieldVisitor) VisitArray(p *openapi.Array) {
 	resource := map[string]interface{}{}
-	//if len(visitor.path) <= 1 {
-	//	value := visitor.cmd.Flags().String(visitor.path[0], "", p.Description)
-	//	visitor.resource = func() interface{} {
-	//		err := json.Unmarshal([]byte(*value), &resource)
-	//		if err != nil {
-	//			panic(err)
-	//		}
-	//		return []interface{}{resource}
-	//	}
-	//	return
-	//}
 
 	if _, found := p.Extensions["x-kubernetes-patch-merge-key"]; !found {
 		panic(fmt.Errorf("Cannot update items in unmergeable lists"))

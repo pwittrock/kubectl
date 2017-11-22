@@ -36,6 +36,7 @@ var supportedFields = []fieldDef{
 	{"memory-limits", []string{"spec", "template", "spec", "containers", "resources", "limits", "memory"}},
 	{"limits", []string{"spec", "template", "spec", "containers", "resources", "limits"}},
 	{"ports", []string{"spec", "template", "spec", "containers", "ports"}},
+	{"env", []string{"spec", "template", "spec", "containers", "env"}},
 }
 
 type fieldDef struct {

@@ -50,11 +50,14 @@ type fn func() (interface{}, bool)
 
 // VisitKind recurses into certain fields to populate flags
 func (visitor *objectFieldVisitor) VisitKind(k *openapi.Kind) {
-
 	// The result for a Kind is a map
 	resource := map[string]interface{}{}
 	values := map[string]fn{}
 	for k, v := range k.Fields {
+		if blacklistedFields.HasAny(k) {
+			continue
+		}
+
 		fv := visitor.newObjectVisitor(k)
 		v.Accept(fv)
 		values[k] = fv.field
@@ -72,7 +75,7 @@ func (visitor *objectFieldVisitor) VisitKind(k *openapi.Kind) {
 	}
 }
 
-var blacklistedFields = sets.NewString("apiVersion", "kind", "metadata", "status")
+var blacklistedFields = sets.NewString("apiVersion", "kind", "metadata", "status", "valueFrom")
 
 // VisitPrimitive creates a new flag to populate the primitive value
 func (visitor *objectFieldVisitor) VisitPrimitive(p *openapi.Primitive) {
