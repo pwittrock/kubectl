@@ -14,31 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package kubefield
+package flags
 
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	fw "k8s.io/kubectl/pkg/framework/openapi"
-	"k8s.io/kubectl/pkg/framework/resource"
 	"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
 )
 
-// FlagBuilder returns a new request body parsed from flag values
-func (builder *CmdBuilderImpl) BuildObject(
-	cmd *cobra.Command,
-	r *resource.Resource,
-	path []string) (func() map[string]interface{}, error) {
-
-	visitor := newKindVisitor(cmd, r.ResourceGroupVersionKind(), path)
-	r.Accept(visitor)
-	return visitor.resource, nil
-}
-
-func newKindVisitor(cmd *cobra.Command, gvk schema.GroupVersionKind, path []string) *kindVisitor {
-	return &kindVisitor{
+func newPatchKindVisitor(cmd *cobra.Command, gvk schema.GroupVersionKind, path []string) *patchKindVisitor {
+	return &patchKindVisitor{
 		fw.PanicVisitor{},
 		gvk,
 		cmd,
@@ -48,7 +37,7 @@ func newKindVisitor(cmd *cobra.Command, gvk schema.GroupVersionKind, path []stri
 	}
 }
 
-type kindVisitor struct {
+type patchKindVisitor struct {
 	fw.PanicVisitor
 	gvk         schema.GroupVersionKind
 	cmd         *cobra.Command
@@ -57,7 +46,7 @@ type kindVisitor struct {
 	stringflags map[string]*string
 }
 
-func (visitor *kindVisitor) VisitKind(k *openapi.Kind) {
+func (visitor *patchKindVisitor) VisitKind(k *openapi.Kind) {
 	visitor.stringflags["name"] = visitor.cmd.Flags().String("name", "", "name of the resource")
 	visitor.stringflags["namespace"] = visitor.cmd.Flags().String("namespace", "default", "namespace of the resource")
 
@@ -89,8 +78,8 @@ func (visitor *kindVisitor) VisitKind(k *openapi.Kind) {
 	}
 }
 
-func (v *kindVisitor) newFieldVisitor(path []string) *fieldVisitor {
-	return &fieldVisitor{
+func (v *patchKindVisitor) newFieldVisitor(path []string) *patchFieldVisitor {
+	return &patchFieldVisitor{
 		v.PanicVisitor,
 		v.cmd,
 		nil,
@@ -100,8 +89,8 @@ func (v *kindVisitor) newFieldVisitor(path []string) *fieldVisitor {
 	}
 }
 
-// fieldVisitor walks the openapi schema and registers flags for primitive fields
-type fieldVisitor struct {
+// patchFieldVisitor walks the openapi schema and registers flags for primitive fields
+type patchFieldVisitor struct {
 	fw.PanicVisitor
 	cmd         *cobra.Command
 	resource    func() interface{}
@@ -111,11 +100,12 @@ type fieldVisitor struct {
 }
 
 // VisitKind recurses into certain fields to populate flags
-func (visitor *fieldVisitor) VisitKind(k *openapi.Kind) {
+func (visitor *patchFieldVisitor) VisitKind(k *openapi.Kind) {
 	resource := map[string]interface{}{}
 
 	// If this is the last element, provide a flag
 	if len(visitor.path) <= 1 {
+
 		value := visitor.cmd.Flags().String(visitor.path[0], "", k.Description)
 		visitor.resource = func() interface{} {
 			if len(*value) > 0 {
@@ -146,7 +136,7 @@ func (visitor *fieldVisitor) VisitKind(k *openapi.Kind) {
 }
 
 // VisitPrimitive creates a new flag to populate the primitive value
-func (visitor *fieldVisitor) VisitPrimitive(p *openapi.Primitive) {
+func (visitor *patchFieldVisitor) VisitPrimitive(p *openapi.Primitive) {
 	// Create a flag reference
 	var value interface{}
 	if !visitor.array {
@@ -178,7 +168,7 @@ func (visitor *fieldVisitor) VisitPrimitive(p *openapi.Primitive) {
 	}
 }
 
-func (visitor *fieldVisitor) VisitArray(p *openapi.Array) {
+func (visitor *patchFieldVisitor) VisitArray(p *openapi.Array) {
 	resource := map[string]interface{}{}
 	if len(visitor.path) <= 1 {
 		value := visitor.cmd.Flags().String(visitor.path[0], "", p.Description)
@@ -224,19 +214,17 @@ func (visitor *fieldVisitor) VisitArray(p *openapi.Array) {
 	}
 }
 
-func (visitor *fieldVisitor) VisitMap(m *openapi.Map) {
+func (visitor *patchFieldVisitor) VisitMap(m *openapi.Map) {
 	resource := map[string]interface{}{}
 
 	if len(visitor.path) == 1 {
+		fv := visitor.newFieldVisitor(visitor.path)
+		m.SubType.Accept(fv)
+
 		// If this is the last element, provide a flag
-		value := visitor.cmd.Flags().String(visitor.path[0], "", m.Description)
+		key := visitor.cmd.Flags().String(fmt.Sprintf("%s-key", visitor.path[0]), "", m.Description)
 		visitor.resource = func() interface{} {
-			if len(*value) > 0 {
-				err := json.Unmarshal([]byte(*value), &resource)
-				if err != nil {
-					panic(err)
-				}
-			}
+			resource[*key] = fv.resource()
 			return resource
 		}
 		return
@@ -263,13 +251,13 @@ func (visitor *fieldVisitor) VisitMap(m *openapi.Map) {
 }
 
 // VisitReference traverses references
-func (visitor *fieldVisitor) VisitReference(r openapi.Reference) {
+func (visitor *patchFieldVisitor) VisitReference(r openapi.Reference) {
 	r.SubSchema().Accept(visitor)
 }
 
-// newFieldVisitor creates a new fieldVisitor for recursion
-func (v *fieldVisitor) newFieldVisitor(path []string) *fieldVisitor {
-	return &fieldVisitor{
+// newFieldVisitor creates a new patchFieldVisitor for recursion
+func (v *patchFieldVisitor) newFieldVisitor(path []string) *patchFieldVisitor {
+	return &patchFieldVisitor{
 		v.PanicVisitor,
 		v.cmd,
 		nil,

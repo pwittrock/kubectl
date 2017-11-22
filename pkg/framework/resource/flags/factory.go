@@ -14,18 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package kubefield
+package flags
 
 import (
+	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"k8s.io/kubectl/pkg/framework"
+	"k8s.io/kubectl/pkg/framework/resource"
 	"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
 )
 
-func NewCmdBuilder() *CmdBuilderImpl {
-	return &CmdBuilderImpl{
+func NewFlagBuilder() *FlagBuilderImpl {
+	return &FlagBuilderImpl{
 		framework.Factory().GetResources(),
 		framework.Factory().GetDiscovery(),
 		framework.Factory().GetRest(),
@@ -35,11 +37,22 @@ func NewCmdBuilder() *CmdBuilderImpl {
 	}
 }
 
-type CmdBuilderImpl struct {
+type FlagBuilderImpl struct {
 	resources  openapi.Resources
 	discovery  discovery.DiscoveryInterface
 	rest       rest.Interface
 	seen       map[string]sets.String
 	apiGroup   string
 	apiVersion string
+}
+
+// FlagBuilder returns a new request body parsed from flag values
+func (builder *FlagBuilderImpl) BuildObject(
+	cmd *cobra.Command,
+	r *resource.Resource,
+	path []string) (func() map[string]interface{}, error) {
+
+	visitor := newPatchKindVisitor(cmd, r.ResourceGroupVersionKind(), path)
+	r.Accept(visitor)
+	return visitor.resource, nil
 }

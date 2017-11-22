@@ -19,8 +19,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-	"k8s.io/kubectl/pkg/cmd/kubefield"
 	"k8s.io/kubectl/pkg/framework/resource"
+	"k8s.io/kubectl/pkg/framework/resource/flags"
 )
 
 // setCmd represents the set command
@@ -34,6 +34,8 @@ var supportedFields = []fieldDef{
 	{"image", []string{"spec", "template", "spec", "containers", "image"}},
 	{"cpu-limits", []string{"spec", "template", "spec", "containers", "resources", "limits", "cpu"}},
 	{"memory-limits", []string{"spec", "template", "spec", "containers", "resources", "limits", "memory"}},
+	{"limits", []string{"spec", "template", "spec", "containers", "resources", "limits"}},
+	{"ports", []string{"spec", "template", "spec", "containers", "ports"}},
 }
 
 type fieldDef struct {
@@ -69,7 +71,7 @@ func init() {
 			}
 			rcmd.AddCommand(fcmd)
 
-			builder := kubefield.NewCmdBuilder()
+			builder := flags.NewFlagBuilder()
 			fn, err := builder.BuildObject(
 				fcmd,
 				versions[0],
