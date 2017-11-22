@@ -21,7 +21,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+	//"gopkg.in/yaml.v2"
+	"github.com/ghodss/yaml"
 	"k8s.io/kubectl/pkg/framework"
 	"k8s.io/kubectl/pkg/framework/resource"
 	"k8s.io/kubectl/pkg/framework/resource/flags"
@@ -59,7 +60,8 @@ func init() {
 		panic(e)
 	}
 
-	output := setCmd.PersistentFlags().String("output", "yaml", "")
+	output := setCmd.PersistentFlags().String("output-format", "yaml", "")
+	dest := setCmd.PersistentFlags().String("output-destination", "", "")
 
 	cmds := map[string]*cobra.Command{}
 
@@ -108,7 +110,7 @@ func init() {
 						panic(err)
 					}
 					remote := map[string]interface{}{}
-					json.Unmarshal(in, &remote)
+					yaml.Unmarshal(in, &remote)
 
 					// Copy the apiVersion and kind since merge expects them
 					local := fn()
@@ -153,7 +155,15 @@ func init() {
 						panic(err)
 					}
 				}
-				fmt.Printf("%s", out)
+
+				if len(*dest) > 0 {
+					err := ioutil.WriteFile(*dest, out, 0600)
+					if err != nil {
+						panic(err)
+					}
+				} else {
+					fmt.Printf("%s", out)
+				}
 			}
 		}
 
