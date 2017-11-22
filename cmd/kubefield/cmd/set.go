@@ -60,8 +60,8 @@ func init() {
 		panic(e)
 	}
 
-	output := setCmd.PersistentFlags().String("output-format", "yaml", "")
-	dest := setCmd.PersistentFlags().String("output-destination", "", "")
+	output := setCmd.PersistentFlags().String("output-format", "yaml", "maybe [yaml, json, patch]")
+	dest := setCmd.PersistentFlags().String("output-destination", "", "destination to write output to")
 
 	cmds := map[string]*cobra.Command{}
 
@@ -149,11 +149,18 @@ func init() {
 					if err != nil {
 						panic(err)
 					}
-				} else {
+				} else if *output == "json" {
 					out, err = json.MarshalIndent(value, "", "    ")
 					if err != nil {
 						panic(err)
 					}
+				} else if *output == "patch" {
+					out, err = json.Marshal(value)
+					if err != nil {
+						panic(err)
+					}
+				} else {
+					panic(fmt.Errorf("Unknown format %s", *output))
 				}
 
 				if len(*dest) > 0 {
