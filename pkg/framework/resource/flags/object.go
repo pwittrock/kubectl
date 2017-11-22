@@ -21,11 +21,13 @@ import (
 	//"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/sets"
 	//fw "k8s.io/kubectl/pkg/framework/openapi"
+	"fmt"
 	"k8s.io/kubernetes/pkg/kubectl/cmd/util/openapi"
 )
 
 func newObjectKindVisitor(cmd *cobra.Command, name string) *objectFieldVisitor {
 	return &objectFieldVisitor{
+		name,
 		name,
 		cmd,
 		nil,
@@ -36,32 +38,37 @@ func newObjectKindVisitor(cmd *cobra.Command, name string) *objectFieldVisitor {
 
 // objectFieldVisitor walks the openapi schema and registers flags for primitive fields
 type objectFieldVisitor struct {
+	parent      string
 	name        string
 	cmd         *cobra.Command
-	field       interface{}
+	field       fn
 	array       bool
 	stringflags map[string]*string
 }
 
-var whitelistedFields = sets.NewString("spec", "rollbackTo")
+type fn func() (interface{}, bool)
 
 // VisitKind recurses into certain fields to populate flags
 func (visitor *objectFieldVisitor) VisitKind(k *openapi.Kind) {
-	// Only recurse for whitelisted fields
-	if !whitelistedFields.HasAny(visitor.name) {
-		return
-	}
 
 	// The result for a Kind is a map
 	resource := map[string]interface{}{}
-	visitor.field = resource
-
+	values := map[string]fn{}
 	for k, v := range k.Fields {
 		fv := visitor.newObjectVisitor(k)
 		v.Accept(fv)
-		if fv.field != nil {
-			resource[k] = fv.field
+		values[k] = fv.field
+	}
+
+	visitor.field = func() (interface{}, bool) {
+		changed := false
+		for k, v := range values {
+			if result, changed := v(); changed {
+				changed = true
+				resource[k] = result
+			}
 		}
+		return resource, changed
 	}
 }
 
@@ -74,28 +81,41 @@ func (visitor *objectFieldVisitor) VisitPrimitive(p *openapi.Primitive) {
 		return
 	}
 
+	var value interface{}
+	var name string
+	if visitor.parent != visitor.name {
+		name = fmt.Sprintf("%s-%s", visitor.parent, visitor.name)
+	} else {
+		name = visitor.name
+	}
+
 	// Create a flag reference
 	if !visitor.array {
 		switch p.Type {
 		case "integer":
-			visitor.field = visitor.cmd.Flags().Int32(visitor.name, 0, p.Description)
+			value = visitor.cmd.Flags().Int32(name, 0, p.Description)
 		case "boolean":
-			visitor.field = visitor.cmd.Flags().Bool(visitor.name, false, p.Description)
+			value = visitor.cmd.Flags().Bool(name, false, p.Description)
 		case "string":
-			if _, found := visitor.stringflags[visitor.name]; !found {
-				visitor.stringflags[visitor.name] = visitor.cmd.Flags().String(visitor.name, "", p.Description)
+			if _, found := visitor.stringflags[name]; !found {
+				visitor.stringflags[name] = visitor.cmd.Flags().String(name, "", p.Description)
 			}
-			visitor.field = visitor.stringflags[visitor.name]
+			value = visitor.stringflags[name]
+
 		}
 	} else {
 		switch p.Type {
 		case "integer":
-			visitor.field = visitor.cmd.Flags().IntSlice(visitor.name, []int{}, p.Description)
+			value = visitor.cmd.Flags().IntSlice(name, []int{}, p.Description)
 		case "boolean":
-			visitor.field = visitor.cmd.Flags().BoolSlice(visitor.name, []bool{}, p.Description)
+			value = visitor.cmd.Flags().BoolSlice(name, []bool{}, p.Description)
 		case "string":
-			visitor.field = visitor.cmd.Flags().StringSlice(visitor.name, []string{}, p.Description)
+			value = visitor.cmd.Flags().StringSlice(name, []string{}, p.Description)
 		}
+	}
+
+	visitor.field = func() (interface{}, bool) {
+		return value, visitor.cmd.Flag(name).Changed
 	}
 }
 
@@ -125,6 +145,7 @@ func (visitor *objectFieldVisitor) VisitReference(r openapi.Reference) {
 // newFieldVisitor creates a new patchFieldVisitor for recursion
 func (v *objectFieldVisitor) newObjectVisitor(name string) *objectFieldVisitor {
 	return &objectFieldVisitor{
+		v.parent,
 		name,
 		v.cmd,
 		nil,

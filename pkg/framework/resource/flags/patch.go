@@ -17,7 +17,7 @@ limitations under the License.
 package flags
 
 import (
-	"encoding/json"
+	//"encoding/json"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -105,17 +105,23 @@ func (visitor *patchFieldVisitor) VisitKind(k *openapi.Kind) {
 
 	// If this is the last element, provide a flag
 	if len(visitor.path) <= 1 {
-
-		value := visitor.cmd.Flags().String(visitor.path[0], "", k.Description)
+		ov := newObjectKindVisitor(visitor.cmd, visitor.path[0])
+		k.Accept(ov)
 		visitor.resource = func() interface{} {
-			if len(*value) > 0 {
-				err := json.Unmarshal([]byte(*value), &resource)
-				if err != nil {
-					panic(err)
-				}
-			}
-			return resource
+			value, _ := ov.field()
+			return value
 		}
+
+		//value := visitor.cmd.Flags().String(visitor.path[0], "", k.Description)
+		//visitor.resource = func() interface{} {
+		//	if len(*value) > 0 {
+		//		err := json.Unmarshal([]byte(*value), &resource)
+		//		if err != nil {
+		//			panic(err)
+		//		}
+		//	}
+		//	return resource
+		//}
 		return
 	}
 
@@ -170,17 +176,17 @@ func (visitor *patchFieldVisitor) VisitPrimitive(p *openapi.Primitive) {
 
 func (visitor *patchFieldVisitor) VisitArray(p *openapi.Array) {
 	resource := map[string]interface{}{}
-	if len(visitor.path) <= 1 {
-		value := visitor.cmd.Flags().String(visitor.path[0], "", p.Description)
-		visitor.resource = func() interface{} {
-			err := json.Unmarshal([]byte(*value), &resource)
-			if err != nil {
-				panic(err)
-			}
-			return []interface{}{resource}
-		}
-		return
-	}
+	//if len(visitor.path) <= 1 {
+	//	value := visitor.cmd.Flags().String(visitor.path[0], "", p.Description)
+	//	visitor.resource = func() interface{} {
+	//		err := json.Unmarshal([]byte(*value), &resource)
+	//		if err != nil {
+	//			panic(err)
+	//		}
+	//		return []interface{}{resource}
+	//	}
+	//	return
+	//}
 
 	if _, found := p.Extensions["x-kubernetes-patch-merge-key"]; !found {
 		panic(fmt.Errorf("Cannot update items in unmergeable lists"))
@@ -190,8 +196,10 @@ func (visitor *patchFieldVisitor) VisitArray(p *openapi.Array) {
 		panic(fmt.Errorf("Mergekey not a string %v %T", mergeKey, mergeKey))
 	}
 
-	resource[mergeKey] = visitor.cmd.Flags().
-		String(fmt.Sprintf("%s-%s", visitor.path[0], mergeKey), "", p.Description)
+	if len(visitor.path) > 1 {
+		resource[mergeKey] = visitor.cmd.Flags().
+			String(fmt.Sprintf("%s-%s", visitor.path[0], mergeKey), "", p.Description)
+	}
 
 	fv := visitor.newFieldVisitor(visitor.path)
 	fv.array = true
