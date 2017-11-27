@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bf224adc-757b-4512-b181-07e39e635134" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go" afterPath="$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go" />
+      <change beforePath="$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go" afterPath="$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go" />
       <change beforePath="$PROJECT_DIR$/pkg/framework/resource/flags/patch.go" afterPath="$PROJECT_DIR$/pkg/framework/resource/flags/patch.go" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -33,11 +35,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="set.go" pinned="false" current-in-tab="false">
+      <file leaf-file-name="set.go" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="343">
-              <caret line="109" column="38" lean-forward="true" selection-start-line="109" selection-start-column="38" selection-end-line="109" selection-end-column="38" />
+            <state relative-caret-position="431">
+              <caret line="110" column="24" lean-forward="false" selection-start-line="110" selection-start-column="24" selection-end-line="110" selection-end-column="24" />
               <folding>
                 <element signature="e#618#1043#0" expanded="true" />
               </folding>
@@ -45,11 +47,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="patch.go" pinned="false" current-in-tab="true">
+      <file leaf-file-name="patch.go" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pkg/framework/resource/flags/patch.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="249">
-              <caret line="188" column="0" lean-forward="false" selection-start-line="188" selection-start-column="0" selection-end-line="188" selection-end-column="0" />
+            <state relative-caret-position="213">
+              <caret line="56" column="4" lean-forward="false" selection-start-line="56" selection-start-column="4" selection-end-line="59" selection-end-column="5" />
               <folding />
             </state>
           </provider>
@@ -110,8 +112,8 @@
       <file leaf-file-name="cmd.go" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="304">
-              <caret line="117" column="0" lean-forward="false" selection-start-line="117" selection-start-column="0" selection-end-line="117" selection-end-column="0" />
+            <state relative-caret-position="1783">
+              <caret line="133" column="13" lean-forward="true" selection-start-line="133" selection-start-column="13" selection-end-line="133" selection-end-column="13" />
               <folding>
                 <element signature="e#584#752#0" expanded="true" />
               </folding>
@@ -202,14 +204,14 @@
         <option value="$PROJECT_DIR$/cmd/kubefield/pkg/field.go" />
         <option value="$PROJECT_DIR$/pkg/framework/resource/flags/factory.go" />
         <option value="$PROJECT_DIR$/pkg/framework/resource/objectfieldVisitor.go" />
-        <option value="$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go" />
         <option value="$PROJECT_DIR$/cmd/kubefield/cmd/prefix/prefix.go" />
         <option value="$PROJECT_DIR$/cmd/kubefield/cmd/get/prefix.go" />
-        <option value="$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go" />
         <option value="$PROJECT_DIR$/cmd/kubefield/cmd/util.go" />
         <option value="$PROJECT_DIR$/cmd/kubefield/main.go" />
         <option value="$PROJECT_DIR$/cmd/kubefield/cmd/get/get.go" />
         <option value="$PROJECT_DIR$/pkg/framework/resource/flags/patch.go" />
+        <option value="$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go" />
+        <option value="$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go" />
       </list>
     </option>
   </component>
@@ -251,6 +253,32 @@
             <path>
               <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
               <item name="kubectl" type="462c0819:PsiDirectoryNode" />
+              <item name="cmd" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
+              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
+              <item name="cmd" type="462c0819:PsiDirectoryNode" />
+              <item name="kubefield" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
+              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
+              <item name="cmd" type="462c0819:PsiDirectoryNode" />
+              <item name="kubefield" type="462c0819:PsiDirectoryNode" />
+              <item name="cmd" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
+              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
+              <item name="cmd" type="462c0819:PsiDirectoryNode" />
+              <item name="kubefield" type="462c0819:PsiDirectoryNode" />
+              <item name="cmd" type="462c0819:PsiDirectoryNode" />
+              <item name="set" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
+              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
               <item name="docs" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -262,12 +290,6 @@
               <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
               <item name="kubectl" type="462c0819:PsiDirectoryNode" />
               <item name="pkg" type="462c0819:PsiDirectoryNode" />
-              <item name="cmd" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
-              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
-              <item name="pkg" type="462c0819:PsiDirectoryNode" />
               <item name="framework" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -284,76 +306,6 @@
               <item name="framework" type="462c0819:PsiDirectoryNode" />
               <item name="resource" type="462c0819:PsiDirectoryNode" />
               <item name="cmd" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
-              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
-              <item name="pkg" type="462c0819:PsiDirectoryNode" />
-              <item name="framework" type="462c0819:PsiDirectoryNode" />
-              <item name="resource" type="462c0819:PsiDirectoryNode" />
-              <item name="flags" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
-              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
-              <item name="pkg" type="462c0819:PsiDirectoryNode" />
-              <item name="kinflate" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
-              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
-              <item name="vendor" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
-              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
-              <item name="vendor" type="462c0819:PsiDirectoryNode" />
-              <item name="k8s.io" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
-              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
-              <item name="vendor" type="462c0819:PsiDirectoryNode" />
-              <item name="k8s.io" type="462c0819:PsiDirectoryNode" />
-              <item name="kubernetes" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
-              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
-              <item name="vendor" type="462c0819:PsiDirectoryNode" />
-              <item name="k8s.io" type="462c0819:PsiDirectoryNode" />
-              <item name="kubernetes" type="462c0819:PsiDirectoryNode" />
-              <item name="pkg" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
-              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
-              <item name="vendor" type="462c0819:PsiDirectoryNode" />
-              <item name="k8s.io" type="462c0819:PsiDirectoryNode" />
-              <item name="kubernetes" type="462c0819:PsiDirectoryNode" />
-              <item name="pkg" type="462c0819:PsiDirectoryNode" />
-              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
-              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
-              <item name="vendor" type="462c0819:PsiDirectoryNode" />
-              <item name="k8s.io" type="462c0819:PsiDirectoryNode" />
-              <item name="kubernetes" type="462c0819:PsiDirectoryNode" />
-              <item name="pkg" type="462c0819:PsiDirectoryNode" />
-              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
-              <item name="apply" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
-              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
-              <item name="vendor" type="462c0819:PsiDirectoryNode" />
-              <item name="k8s.io" type="462c0819:PsiDirectoryNode" />
-              <item name="kubernetes" type="462c0819:PsiDirectoryNode" />
-              <item name="pkg" type="462c0819:PsiDirectoryNode" />
-              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
-              <item name="apply" type="462c0819:PsiDirectoryNode" />
-              <item name="strategy" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -410,7 +362,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32889965" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32889965" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32889965" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.13606438" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
@@ -740,24 +692,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="304">
-          <caret line="117" column="0" lean-forward="false" selection-start-line="117" selection-start-column="0" selection-end-line="117" selection-end-column="0" />
-          <folding>
-            <element signature="e#584#752#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cmd/kubefield/pkg/field.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="20" column="5" lean-forward="false" selection-start-line="20" selection-start-column="5" selection-end-line="20" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/util.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="212">
@@ -790,21 +724,39 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go">
+    <entry file="file://$PROJECT_DIR$/cmd/kubefield/pkg/field.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="343">
-          <caret line="109" column="38" lean-forward="true" selection-start-line="109" selection-start-column="38" selection-end-line="109" selection-end-column="38" />
+        <state relative-caret-position="300">
+          <caret line="20" column="5" lean-forward="false" selection-start-line="20" selection-start-column="5" selection-end-line="20" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1783">
+          <caret line="133" column="13" lean-forward="true" selection-start-line="133" selection-start-column="13" selection-end-line="133" selection-end-column="13" />
           <folding>
-            <element signature="e#618#1043#0" expanded="true" />
+            <element signature="e#584#752#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pkg/framework/resource/flags/patch.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="249">
-          <caret line="188" column="0" lean-forward="false" selection-start-line="188" selection-start-column="0" selection-end-line="188" selection-end-column="0" />
+        <state relative-caret-position="213">
+          <caret line="56" column="4" lean-forward="false" selection-start-line="56" selection-start-column="4" selection-end-line="59" selection-end-column="5" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="431">
+          <caret line="110" column="24" lean-forward="false" selection-start-line="110" selection-start-column="24" selection-end-line="110" selection-end-column="24" />
+          <folding>
+            <element signature="e#618#1043#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

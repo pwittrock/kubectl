@@ -93,9 +93,22 @@ type Runnable struct {
 
 func (b *Runnable) Run(obj map[string]interface{}) {
 	local := b.local()
-	local["apiVersion"] = obj["apiVersion"]
-	local["kind"] = obj["kind"]
+	if _, f := local["apiVersion"]; !f {
+		local["apiVersion"] = obj["apiVersion"]
+	}
+	if _, f := local["kind"]; !f {
+		local["kind"] = obj["kind"]
+	}
 	local = roundtrip(local)
+
+	if len(obj) == 0 {
+		b.output(os.Stdout, local)
+		return
+	}
+
+	m := local["metadata"].(map[string]interface{})
+	delete(m, "name")
+	delete(m, "namespace")
 
 	result := merge(local, obj)
 	b.output(os.Stdout, result)

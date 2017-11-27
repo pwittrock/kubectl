@@ -114,7 +114,10 @@ func RunFn(fn func(map[string]interface{})) func(cmd *cobra.Command, args []stri
 					log.Fatalf("%v", err)
 				}
 				remote := map[string]interface{}{}
-				yaml.Unmarshal(in, &remote)
+				err = yaml.Unmarshal(in, &remote)
+				if err != nil {
+					log.Fatalf("%v", err)
+				}
 				fn(remote)
 			}
 		} else {
@@ -123,7 +126,17 @@ func RunFn(fn func(map[string]interface{})) func(cmd *cobra.Command, args []stri
 				log.Fatalf("%v", err)
 			}
 			remote := map[string]interface{}{}
+
+			// Empty input, provide an empty obj
+			if len(in) == 0 {
+				fn(remote)
+				return
+			}
+
 			yaml.Unmarshal(in, &remote)
+			if err != nil {
+				log.Fatalf("%v", err)
+			}
 			fn(remote)
 		}
 	}
