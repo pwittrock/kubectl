@@ -186,7 +186,6 @@ func (visitor *patchFieldVisitor) VisitArray(p *openapi.Array) {
 		if ok {
 			for key, value := range casted {
 				resource[key] = value
-				fmt.Printf("Key %s Val %v \n\n", key, *k)
 			}
 			return []interface{}{resource}
 		}
