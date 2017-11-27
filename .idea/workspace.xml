@@ -2,24 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bf224adc-757b-4512-b181-07e39e635134" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/pkg/framework/merge/empty.go" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/pkg/framework/merge/error.go" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/pkg/framework/merge/field.go" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/pkg/framework/resource/objectfieldVisitor.go" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/cmd/kubefield/cmd/get/get.go" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/cmd/kubefield/pkg/field.go" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/cmd/kubefield/cmd/get.go" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/cmd/kubefield/cmd/set.go" afterPath="$PROJECT_DIR$/cmd/kubefield/cmd/prefix/prefix.go" />
+      <change beforePath="$PROJECT_DIR$/cmd/kubefield/cmd/prefix/prefix.go" afterPath="$PROJECT_DIR$/cmd/kubefield/cmd/prefix/prefix.go" />
+      <change beforePath="$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go" afterPath="$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go" />
+      <change beforePath="$PROJECT_DIR$/cmd/kubefield/cmd/util.go" afterPath="$PROJECT_DIR$/cmd/kubefield/cmd/util.go" />
       <change beforePath="$PROJECT_DIR$/cmd/kubefield/main.go" afterPath="$PROJECT_DIR$/cmd/kubefield/main.go" />
-      <change beforePath="$PROJECT_DIR$/pkg/framework/resource/filter.go" afterPath="$PROJECT_DIR$/pkg/framework/resource/filter.go" />
-      <change beforePath="$PROJECT_DIR$/pkg/framework/resource/hasfield.go" afterPath="$PROJECT_DIR$/pkg/framework/resource/schemaFieldVisitor.go" />
-      <change beforePath="$PROJECT_DIR$/pkg/framework/resource/resource.go" afterPath="$PROJECT_DIR$/pkg/framework/resource/resource.go" />
-      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/pkg/kubectl/apply/strategy/merge.go" afterPath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/pkg/kubectl/apply/strategy/merge.go" />
-      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/pkg/kubectl/apply/strategy/merge_visitor.go" afterPath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/pkg/kubectl/apply/strategy/merge_visitor.go" />
-      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/pkg/kubectl/apply/strategy/replace_visitor.go" afterPath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/pkg/kubectl/apply/strategy/replace_visitor.go" />
-      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/pkg/kubectl/apply/strategy/retain_keys_visitor.go" afterPath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/pkg/kubectl/apply/strategy/retain_keys_visitor.go" />
-      <change beforePath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/pkg/kubectl/apply/strategy/strategic_visitor.go" afterPath="$PROJECT_DIR$/vendor/k8s.io/kubernetes/pkg/kubectl/apply/strategy/strategic_visitor.go" />
+      <change beforePath="$PROJECT_DIR$/d.yaml" afterPath="$PROJECT_DIR$/d.yaml" />
+      <change beforePath="$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go" afterPath="$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go" />
+      <change beforePath="$PROJECT_DIR$/pkg/framework/resource/flags/patch.go" afterPath="$PROJECT_DIR$/pkg/framework/resource/flags/patch.go" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -29,68 +21,12 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="set.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go">
+    <leaf>
+      <file leaf-file-name="main.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cmd/kubefield/main.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1290">
-              <caret line="102" column="0" lean-forward="false" selection-start-line="102" selection-start-column="0" selection-end-line="102" selection-end-column="0" />
-              <folding>
-                <element signature="e#618#1060#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="prefix.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/prefix/prefix.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="838">
-              <caret line="67" column="0" lean-forward="true" selection-start-line="67" selection-start-column="0" selection-end-line="67" selection-end-column="0" />
-              <folding>
-                <element signature="e#621#874#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="cmd.go" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="657">
-              <caret line="134" column="0" lean-forward="true" selection-start-line="134" selection-start-column="0" selection-end-line="134" selection-end-column="0" />
-              <folding>
-                <element signature="e#584#752#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="parse.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pkg/framework/resource/parse.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="240">
-              <caret line="16" column="16" lean-forward="false" selection-start-line="16" selection-start-column="8" selection-end-line="16" selection-end-column="16" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="filter.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pkg/framework/resource/filter.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1410">
-              <caret line="99" column="44" lean-forward="false" selection-start-line="99" selection-start-column="44" selection-end-line="99" selection-end-column="44" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="resources.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pkg/framework/resource/resources.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="510">
-              <caret line="36" column="26" lean-forward="false" selection-start-line="36" selection-start-column="26" selection-end-line="36" selection-end-column="39" />
+            <state relative-caret-position="285">
+              <caret line="19" column="0" lean-forward="false" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -106,23 +42,87 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/cmd/kubefield/main.go">
+      <file leaf-file-name="set.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="270">
-              <caret line="18" column="49" lean-forward="false" selection-start-line="18" selection-start-column="49" selection-end-line="18" selection-end-column="49" />
+            <state relative-caret-position="264">
+              <caret line="84" column="40" lean-forward="false" selection-start-line="84" selection-start-column="40" selection-end-line="84" selection-end-column="40" />
+              <folding>
+                <element signature="e#618#1043#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="patch.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pkg/framework/resource/flags/patch.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="527">
+              <caret line="155" column="0" lean-forward="false" selection-start-line="155" selection-start-column="0" selection-end-line="155" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="resource.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pkg/framework/resource/resource.go">
+      <file leaf-file-name="object.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pkg/framework/resource/flags/object.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="840">
-              <caret line="60" column="99" lean-forward="false" selection-start-line="60" selection-start-column="99" selection-end-line="60" selection-end-column="99" />
+            <state relative-caret-position="765">
+              <caret line="89" column="39" lean-forward="false" selection-start-line="89" selection-start-column="39" selection-end-line="89" selection-end-column="39" />
               <folding>
-                <element signature="e#589#727#0" expanded="true" />
+                <element signature="e#586#853#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="prefix.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/prefix/prefix.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="480">
+              <caret line="44" column="0" lean-forward="false" selection-start-line="44" selection-start-column="0" selection-end-line="44" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="get.go" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/get/get.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="255">
+              <caret line="17" column="0" lean-forward="false" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="field.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cmd/kubefield/pkg/field.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="300">
+              <caret line="20" column="5" lean-forward="false" selection-start-line="20" selection-start-column="5" selection-end-line="20" selection-end-column="5" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="util.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/util.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="212">
+              <caret line="21" column="0" lean-forward="false" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="cmd.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="304">
+              <caret line="117" column="0" lean-forward="false" selection-start-line="117" selection-start-column="0" selection-end-line="117" selection-end-column="0" />
+              <folding>
+                <element signature="e#584#752#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -159,6 +159,9 @@
       <find>set</find>
       <find>openapi</find>
       <find>prefix</find>
+      <find>flag</find>
+      <find>Primitive</find>
+      <find>merge</find>
     </findStrings>
   </component>
   <component name="GOROOT" path="/usr/local/go" />
@@ -183,15 +186,12 @@
         <option value="$PROJECT_DIR$/pkg/framework/resource/has.go" />
         <option value="$PROJECT_DIR$/pkg/cmd/kubefield/flags.go" />
         <option value="$PROJECT_DIR$/pkg/framework/resource/flags/flags.go" />
-        <option value="$PROJECT_DIR$/pkg/framework/resource/flags/factory.go" />
         <option value="$PROJECT_DIR$/pkg/framework/internal/openapi/resource.go" />
         <option value="$PROJECT_DIR$/pkg/framework/internal/openapi/flags.go" />
         <option value="$PROJECT_DIR$/pkg/framework/openapi/openapi.go" />
         <option value="$PROJECT_DIR$/pkg/framework/resource/schema.go" />
         <option value="$PROJECT_DIR$/pkg/framework/resource/parse.go" />
         <option value="$PROJECT_DIR$/pkg/framework/resource/flags/object.go" />
-        <option value="$PROJECT_DIR$/pkg/framework/resource/flags/patch.go" />
-        <option value="$PROJECT_DIR$/cmd/kubefield/cmd/util.go" />
         <option value="$PROJECT_DIR$/cmd/kubefield/cmd/set.go" />
         <option value="$PROJECT_DIR$/pkg/framework/merge/panic.go" />
         <option value="$PROJECT_DIR$/pkg/framework/merge/error.go" />
@@ -205,13 +205,19 @@
         <option value="$PROJECT_DIR$/pkg/framework/resource/getfield.go" />
         <option value="$PROJECT_DIR$/pkg/framework/resource/setfield.go" />
         <option value="$PROJECT_DIR$/pkg/framework/resource/hasfield.go" />
-        <option value="$PROJECT_DIR$/pkg/framework/resource/objectfieldVisitor.go" />
         <option value="$PROJECT_DIR$/pkg/framework/resource/resource.go" />
-        <option value="$PROJECT_DIR$/cmd/kubefield/main.go" />
-        <option value="$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go" />
         <option value="$PROJECT_DIR$/pkg/framework/resource/filter.go" />
-        <option value="$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go" />
+        <option value="$PROJECT_DIR$/cmd/kubefield/pkg/field.go" />
+        <option value="$PROJECT_DIR$/pkg/framework/resource/flags/factory.go" />
+        <option value="$PROJECT_DIR$/pkg/framework/resource/objectfieldVisitor.go" />
+        <option value="$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go" />
+        <option value="$PROJECT_DIR$/pkg/framework/resource/flags/patch.go" />
         <option value="$PROJECT_DIR$/cmd/kubefield/cmd/prefix/prefix.go" />
+        <option value="$PROJECT_DIR$/cmd/kubefield/cmd/get/prefix.go" />
+        <option value="$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go" />
+        <option value="$PROJECT_DIR$/cmd/kubefield/cmd/util.go" />
+        <option value="$PROJECT_DIR$/cmd/kubefield/main.go" />
+        <option value="$PROJECT_DIR$/cmd/kubefield/cmd/get/get.go" />
       </list>
     </option>
   </component>
@@ -221,7 +227,7 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds" fullScreen="true">
+  <component name="ProjectFrameBounds" extendedState="6" fullScreen="true">
     <option name="x" value="4" />
     <option name="y" value="23" />
     <option name="width" value="1440" />
@@ -293,6 +299,14 @@
               <item name="cmd" type="462c0819:PsiDirectoryNode" />
               <item name="kubefield" type="462c0819:PsiDirectoryNode" />
               <item name="cmd" type="462c0819:PsiDirectoryNode" />
+              <item name="get" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
+              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
+              <item name="cmd" type="462c0819:PsiDirectoryNode" />
+              <item name="kubefield" type="462c0819:PsiDirectoryNode" />
+              <item name="cmd" type="462c0819:PsiDirectoryNode" />
               <item name="prefix" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -302,6 +316,13 @@
               <item name="kubefield" type="462c0819:PsiDirectoryNode" />
               <item name="cmd" type="462c0819:PsiDirectoryNode" />
               <item name="set" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
+              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
+              <item name="cmd" type="462c0819:PsiDirectoryNode" />
+              <item name="kubefield" type="462c0819:PsiDirectoryNode" />
+              <item name="pkg" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
@@ -339,6 +360,14 @@
               <item name="framework" type="462c0819:PsiDirectoryNode" />
               <item name="resource" type="462c0819:PsiDirectoryNode" />
               <item name="cmd" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
+              <item name="kubectl" type="462c0819:PsiDirectoryNode" />
+              <item name="pkg" type="462c0819:PsiDirectoryNode" />
+              <item name="framework" type="462c0819:PsiDirectoryNode" />
+              <item name="resource" type="462c0819:PsiDirectoryNode" />
+              <item name="flags" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="kubectl" type="b2602c69:ProjectViewProjectNode" />
@@ -421,15 +450,16 @@
     <property name="ask.go.tool.to.install.GoImportsTaskConsumer" value="true" />
     <property name="DefaultGoTemplateProperty" value="Go File" />
     <property name="ignore_missing_gitignore" value="true" />
+    <property name="full.screen.before.presentation.mode" value="true" />
   </component>
   <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/cmd/kubefield/cmd" />
-    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/cmd/kubefield/cmd/prefix" />
       <recent name="$PROJECT_DIR$/cmd/kubefield/cmd/set" />
       <recent name="$PROJECT_DIR$/pkg/framework/resource/flags" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/cmd/kubefield/cmd" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -448,15 +478,16 @@
     <option name="remove_strategy" value="false" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="2560" height="1440" extended-state="0" />
+    <frame x="0" y="0" width="1440" height="900" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25377283" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2074392" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32889965" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32889965" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.13663845" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.13606438" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -466,10 +497,29 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32889965" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
     </layout>
+    <layout-to-restore>
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32889965" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.13606438" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25377283" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32889965" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+    </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
@@ -482,27 +532,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pkg/framework/internal/openapi/util.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="302">
-          <caret line="49" column="43" lean-forward="false" selection-start-line="49" selection-start-column="43" selection-end-line="49" selection-end-column="43" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pkg/framework/internal/openapi/list.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1119">
-          <caret line="85" column="12" lean-forward="false" selection-start-line="85" selection-start-column="12" selection-end-line="89" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/vendor/k8s.io/client-go/discovery/discovery_client.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="266">
@@ -535,13 +564,6 @@
     <entry file="file://$PROJECT_DIR$/pkg/framework/resource/field/has.go" />
     <entry file="file://$PROJECT_DIR$/pkg/framework/resource/has.go" />
     <entry file="file://$PROJECT_DIR$/pkg/cmd/kubefield/cmd.go" />
-    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/flags/factory.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="24" column="0" lean-forward="false" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/vendor/github.com/spf13/pflag/flag.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="191">
@@ -560,20 +582,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="375">
           <caret line="30" column="0" lean-forward="false" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/util.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="227">
-          <caret line="22" column="48" lean-forward="false" selection-start-line="22" selection-start-column="48" selection-end-line="22" selection-end-column="48" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/flags/object.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="25" column="0" lean-forward="false" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -704,78 +712,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/vendor/k8s.io/kube-openapi/pkg/util/proto/openapi.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="236">
-          <caret line="61" column="11" lean-forward="false" selection-start-line="61" selection-start-column="5" selection-end-line="61" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/schemaFieldVisitor.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1185">
-          <caret line="79" column="40" lean-forward="false" selection-start-line="79" selection-start-column="40" selection-end-line="79" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/flags/patch.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="738">
-          <caret line="200" column="5" lean-forward="false" selection-start-line="167" selection-start-column="0" selection-end-line="200" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/objectfieldVisitor.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="259">
-          <caret line="27" column="85" lean-forward="false" selection-start-line="27" selection-start-column="85" selection-end-line="27" selection-end-column="85" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/resource.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="840">
-          <caret line="60" column="99" lean-forward="false" selection-start-line="60" selection-start-column="99" selection-end-line="60" selection-end-column="99" />
-          <folding>
-            <element signature="e#589#727#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/root.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="20" column="0" lean-forward="false" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cmd/kubefield/main.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="18" column="49" lean-forward="false" selection-start-line="18" selection-start-column="49" selection-end-line="18" selection-end-column="49" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/resources.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="510">
-          <caret line="36" column="26" lean-forward="false" selection-start-line="36" selection-start-column="26" selection-end-line="36" selection-end-column="39" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1290">
-          <caret line="102" column="0" lean-forward="false" selection-start-line="102" selection-start-column="0" selection-end-line="102" selection-end-column="0" />
-          <folding>
-            <element signature="e#618#1060#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/vendor/github.com/spf13/cobra/command.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="266">
@@ -790,39 +726,161 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/resources.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="570">
+          <caret line="40" column="28" lean-forward="false" selection-start-line="40" selection-start-column="28" selection-end-line="40" selection-end-column="28" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/schemaFieldVisitor.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vendor/k8s.io/kube-openapi/pkg/util/proto/openapi.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="514">
+          <caret line="125" column="1" lean-forward="true" selection-start-line="125" selection-start-column="1" selection-end-line="125" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/pkg/framework/resource/filter.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1410">
-          <caret line="99" column="44" lean-forward="false" selection-start-line="99" selection-start-column="44" selection-end-line="99" selection-end-column="44" />
+        <state relative-caret-position="1382">
+          <caret line="103" column="19" lean-forward="false" selection-start-line="103" selection-start-column="19" selection-end-line="103" selection-end-column="19" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/resource.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="495">
+          <caret line="37" column="16" lean-forward="false" selection-start-line="37" selection-start-column="16" selection-end-line="37" selection-end-column="16" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/objectfieldVisitor.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="314">
+          <caret line="55" column="32" lean-forward="false" selection-start-line="55" selection-start-column="32" selection-end-line="55" selection-end-column="32" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pkg/framework/resource/parse.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
+        <state relative-caret-position="29">
           <caret line="16" column="16" lean-forward="false" selection-start-line="16" selection-start-column="8" selection-end-line="16" selection-end-column="16" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/flags/factory.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="627">
+          <caret line="54" column="28" lean-forward="false" selection-start-line="54" selection-start-column="28" selection-end-line="54" selection-end-column="28" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/flags/object.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="765">
+          <caret line="89" column="39" lean-forward="false" selection-start-line="89" selection-start-column="39" selection-end-line="89" selection-end-column="39" />
+          <folding>
+            <element signature="e#586#853#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/set/set.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="264">
+          <caret line="84" column="40" lean-forward="false" selection-start-line="84" selection-start-column="40" selection-end-line="84" selection-end-column="40" />
+          <folding>
+            <element signature="e#618#1043#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pkg/framework/resource/flags/patch.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="527">
+          <caret line="155" column="0" lean-forward="false" selection-start-line="155" selection-start-column="0" selection-end-line="155" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/prefix/prefix.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="838">
-          <caret line="67" column="0" lean-forward="true" selection-start-line="67" selection-start-column="0" selection-end-line="67" selection-end-column="0" />
-          <folding>
-            <element signature="e#621#874#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="480">
+          <caret line="44" column="0" lean-forward="false" selection-start-line="44" selection-start-column="0" selection-end-line="44" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/get/prefix.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="363">
+          <caret line="73" column="28" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="98" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pkg/framework/resource/cmd/cmd.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="657">
-          <caret line="134" column="0" lean-forward="true" selection-start-line="134" selection-start-column="0" selection-end-line="134" selection-end-column="0" />
+        <state relative-caret-position="304">
+          <caret line="117" column="0" lean-forward="false" selection-start-line="117" selection-start-column="0" selection-end-line="117" selection-end-column="0" />
           <folding>
             <element signature="e#584#752#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cmd/kubefield/pkg/field.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="300">
+          <caret line="20" column="5" lean-forward="false" selection-start-line="20" selection-start-column="5" selection-end-line="20" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/util.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="212">
+          <caret line="21" column="0" lean-forward="false" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/root.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="300">
+          <caret line="20" column="0" lean-forward="false" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cmd/kubefield/main.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="19" column="0" lean-forward="false" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cmd/kubefield/cmd/get/get.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="17" column="0" lean-forward="false" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>

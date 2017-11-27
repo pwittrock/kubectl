@@ -17,11 +17,12 @@ limitations under the License.
 package cmd
 
 import (
+	"strings"
+
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	openapi "k8s.io/kube-openapi/pkg/util/proto"
-	"strings"
 )
 
 type fieldDefinition struct {

@@ -48,16 +48,7 @@ type patchKindVisitor struct {
 }
 
 func (visitor *patchKindVisitor) VisitKind(k *openapi.Kind) {
-	//visitor.stringflags["name"] = visitor.cmd.Flags().String("name", "", "name of the resource")
-	//visitor.stringflags["namespace"] = visitor.cmd.Flags().String("namespace", "default", "namespace of the resource")
-
 	resource := map[string]interface{}{}
-	//resource["apiVersion"] = fmt.Sprintf("%v/%v", visitor.gvk.Group, visitor.gvk.Version)
-	//resource["kind"] = fmt.Sprintf("%v", visitor.gvk.Kind)
-	//resource["metadata"] = map[string]interface{}{
-	//	"name":      visitor.stringflags["name"],
-	//	"namespace": visitor.stringflags["namespace"],
-	//}
 
 	if len(visitor.path) == 0 {
 		panic(fmt.Errorf("path must have length greater than 0: %v", visitor.path))
@@ -135,6 +126,7 @@ func (visitor *patchFieldVisitor) VisitKind(k *openapi.Kind) {
 func (visitor *patchFieldVisitor) VisitPrimitive(p *openapi.Primitive) {
 	// Create a flag reference
 	var value interface{}
+	var s *string
 	if !visitor.array {
 		switch p.Type {
 		case "integer":
@@ -143,7 +135,8 @@ func (visitor *patchFieldVisitor) VisitPrimitive(p *openapi.Primitive) {
 			value = visitor.cmd.Flags().Bool(visitor.path[0], false, p.Description)
 		case "string":
 			if _, found := visitor.stringflags[visitor.path[0]]; !found {
-				visitor.stringflags[visitor.path[0]] = visitor.cmd.Flags().String(visitor.path[0], "", p.Description)
+				s = visitor.cmd.Flags().String(visitor.path[0], "", p.Description)
+				visitor.stringflags[visitor.path[0]] = s
 			}
 			value = visitor.stringflags[visitor.path[0]]
 		}
@@ -175,9 +168,11 @@ func (visitor *patchFieldVisitor) VisitArray(p *openapi.Array) {
 		panic(fmt.Errorf("Mergekey not a string %v %T", mergeKey, mergeKey))
 	}
 
+	var k *string
 	if len(visitor.path) > 1 {
-		resource[mergeKey] = visitor.cmd.Flags().
+		k = visitor.cmd.Flags().
 			String(fmt.Sprintf("%s-%s", visitor.path[0], mergeKey), "", p.Description)
+		resource[mergeKey] = k
 	}
 
 	fv := visitor.newFieldVisitor(visitor.path)
@@ -191,6 +186,7 @@ func (visitor *patchFieldVisitor) VisitArray(p *openapi.Array) {
 		if ok {
 			for key, value := range casted {
 				resource[key] = value
+				fmt.Printf("Key %s Val %v \n\n", key, *k)
 			}
 			return []interface{}{resource}
 		}
@@ -209,9 +205,10 @@ func (visitor *patchFieldVisitor) VisitMap(m *openapi.Map) {
 		m.SubType.Accept(fv)
 
 		// If this is the last element, provide a flag
-		key := visitor.cmd.Flags().String(fmt.Sprintf("%s-key", visitor.path[0]), "", m.Description)
+		var key string
+		visitor.cmd.Flags().StringVar(&key, fmt.Sprintf("%s-key", visitor.path[0]), "", m.Description)
 		visitor.resource = func() interface{} {
-			resource[*key] = fv.resource()
+			resource[key] = fv.resource()
 			return resource
 		}
 		return

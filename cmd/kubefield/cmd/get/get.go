@@ -15,7 +15,6 @@
 package prefix
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -28,9 +27,9 @@ import (
 	resourcecmd "k8s.io/kubectl/pkg/framework/resource/cmd"
 )
 
-// prefixCmd represents the set command
-var prefixCmd = &cobra.Command{
-	Use:   "prefix",
+// getCmd represents the set command
+var getCmd = &cobra.Command{
+	Use:   "get",
 	Short: "",
 	Long:  ``,
 }
@@ -54,7 +53,6 @@ func (b *Buildable) Build(r *resource.Resource) *cobra.Command {
 	}
 	run := &Runnable{
 		field:    b.field,
-		prefix:   cmd.Flags().String("value", "f", "Prefix field with this value"),
 		output:   resourcecmd.OutputFn(cmd),
 		resource: r,
 	}
@@ -64,25 +62,21 @@ func (b *Buildable) Build(r *resource.Resource) *cobra.Command {
 
 type Runnable struct {
 	field    pkg.FieldDef
-	prefix   *string
 	output   func(io.Writer, interface{})
 	resource *resource.Resource
 }
 
 func (b *Runnable) Run(obj map[string]interface{}) {
-	value, err := b.resource.Field(b.field.Path, obj,
+	var val interface{}
+	_, err := b.resource.Field(b.field.Path, obj,
 		func(i interface{}, _ openapi.BaseSchema, _ openapi.Schema) interface{} {
-			p := *b.prefix
-			val := fmt.Sprintf("%s%v", p, i)
-			if i == nil {
-				val = fmt.Sprintf("%s", p)
-			}
-			return val
+			val = i
+			return i
 		})
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	b.output(os.Stdout, value)
+	b.output(os.Stdout, val)
 }
 
 func init() {
@@ -91,8 +85,8 @@ func init() {
 		builder.BuildCmdsForResources(resource.NewFieldFilter(field.Path), &Buildable{field: field})
 	}
 
-	kubefield.RootCmd.AddCommand(prefixCmd)
+	kubefield.RootCmd.AddCommand(getCmd)
 	for _, c := range builder.Cmds() {
-		prefixCmd.AddCommand(c)
+		getCmd.AddCommand(c)
 	}
 }

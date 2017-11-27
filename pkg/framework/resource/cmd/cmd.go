@@ -91,7 +91,8 @@ func (b *CmdBuilder) BuildCmdsForResources(filter resource.Filter, build Buildab
 	for k, versions := range resources {
 		// Lookup the command for this resource and add the child to it
 		parent := b.cmd(k)
-		parent.AddCommand(build.Build(b.version(versions)))
+		child := build.Build(b.version(versions))
+		parent.AddCommand(child)
 	}
 	return nil
 }
@@ -105,24 +106,19 @@ func (b *CmdBuilder) Cmds() []*cobra.Command {
 }
 
 func RunFn(fn func(map[string]interface{})) func(cmd *cobra.Command, args []string) {
-
-	// Read objects from stdin
-	if stat, err := os.Stdin.Stat(); err != nil && stat.Size() > 0 {
-		return func(cmd *cobra.Command, args []string) {
-			in, err := ioutil.ReadAll(os.Stdin)
-			if err != nil {
-				log.Fatalf("%v", err)
-			}
-			remote := map[string]interface{}{}
-			yaml.Unmarshal(in, &remote)
-			fn(remote)
-		}
-	}
-
-	// Read objects from file specified as args
 	return func(cmd *cobra.Command, args []string) {
-		for _, f := range args {
-			in, err := ioutil.ReadFile(f)
+		if len(args) > 0 {
+			for _, f := range args {
+				in, err := ioutil.ReadFile(f)
+				if err != nil {
+					log.Fatalf("%v", err)
+				}
+				remote := map[string]interface{}{}
+				yaml.Unmarshal(in, &remote)
+				fn(remote)
+			}
+		} else {
+			in, err := ioutil.ReadAll(os.Stdin)
 			if err != nil {
 				log.Fatalf("%v", err)
 			}
