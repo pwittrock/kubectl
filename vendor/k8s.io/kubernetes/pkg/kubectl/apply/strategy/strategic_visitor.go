@@ -34,9 +34,13 @@ func createDelegatingStrategy(options Options) *delegatingStrategy {
 	v := &delegatingStrategy{
 		options: options,
 	}
-	v.replace = createReplaceStrategy(options, v)
-	v.merge = createMergeStrategy(options, v)
-	v.retainKeys = createRetainKeysStrategy(options, v)
+	var d apply.Strategy = v
+	if options.Delegate != nil {
+	    d = options.Delegate
+    }
+	v.replace = createReplaceStrategy(options, d)
+	v.merge = createMergeStrategy(options, d)
+	v.retainKeys = createRetainKeysStrategy(options, d)
 	return v
 }
 

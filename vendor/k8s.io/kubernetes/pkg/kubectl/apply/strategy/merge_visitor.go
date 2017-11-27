@@ -22,7 +22,7 @@ import (
 	"k8s.io/kubernetes/pkg/kubectl/apply"
 )
 
-func createMergeStrategy(options Options, strategic *delegatingStrategy) mergeStrategy {
+func createMergeStrategy(options Options, strategic apply.Strategy) mergeStrategy {
 	return mergeStrategy{
 		strategic,
 		options,
@@ -31,7 +31,7 @@ func createMergeStrategy(options Options, strategic *delegatingStrategy) mergeSt
 
 // mergeStrategy merges the values in an Element into a single Result
 type mergeStrategy struct {
-	strategic *delegatingStrategy
+	strategic apply.Strategy
 	options   Options
 }
 

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package set
 
 import (
 	"encoding/json"
@@ -22,9 +22,12 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
+	kubefield "k8s.io/kubectl/cmd/kubefield/cmd"
 	"k8s.io/kubectl/pkg/framework"
+	"k8s.io/kubectl/pkg/framework/merge"
 	"k8s.io/kubectl/pkg/framework/resource"
 	"k8s.io/kubectl/pkg/framework/resource/flags"
+	"k8s.io/kubernetes/pkg/kubectl/apply"
 	"k8s.io/kubernetes/pkg/kubectl/apply/parse"
 	"k8s.io/kubernetes/pkg/kubectl/apply/strategy"
 )
@@ -37,14 +40,18 @@ var setCmd = &cobra.Command{
 }
 
 var supportedFields = []fieldDef{
-	{"image", []string{"spec", "template", "spec", "containers", "image"}},
+	{"container-labels", []string{"spec", "template", "metadata", "labels"}},
 	{"cpu-limits", []string{"spec", "template", "spec", "containers", "resources", "limits", "cpu"}},
-	{"memory-limits", []string{"spec", "template", "spec", "containers", "resources", "limits", "memory"}},
 	{"cpu-requests", []string{"spec", "template", "spec", "containers", "resources", "requests", "cpu"}},
+	{"env", []string{"spec", "template", "spec", "containers", "env"}},
+	{"image", []string{"spec", "template", "spec", "containers", "image"}},
+	{"labels", []string{"metadata", "labels"}},
+	{"memory-limits", []string{"spec", "template", "spec", "containers", "resources", "limits", "memory"}},
 	{"memory-requests", []string{"spec", "template", "spec", "containers", "resources", "requests", "memory"}},
 	{"ports", []string{"spec", "template", "spec", "containers", "ports"}},
-	{"env", []string{"spec", "template", "spec", "containers", "env"}},
 	{"replicas", []string{"spec", "replicas"}},
+	{"selector", []string{"spec", "selector", "matchLabels"}},
+	{"name", []string{"metadata", "name"}},
 }
 
 type fieldDef struct {
@@ -176,7 +183,7 @@ func init() {
 
 	}
 
-	RootCmd.AddCommand(setCmd)
+	kubefield.RootCmd.AddCommand(setCmd)
 	for _, c := range cmds {
 		setCmd.AddCommand(c)
 	}
@@ -189,4 +196,13 @@ type FieldFilter struct {
 
 func (f *FieldFilter) Resource(r *resource.Resource) bool {
 	return r.HasField(f.path)
+}
+
+type PrefixStrategy struct {
+	merge.EmptyStrategy
+	prefix string
+}
+
+func (fs *PrefixStrategy) MergePrimitive(element apply.PrimitiveElement) (apply.Result, error) {
+	return apply.Result{MergedResult: fmt.Sprintf("%s%v", fs.prefix, element.GetRemote())}, nil
 }

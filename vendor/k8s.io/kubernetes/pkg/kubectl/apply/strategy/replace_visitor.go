@@ -22,11 +22,11 @@ import (
 
 // replaceVisitor creates a patch to replace a remote field value with a local field value
 type replaceStrategy struct {
-	strategic *delegatingStrategy
+	strategic apply.Strategy
 	options   Options
 }
 
-func createReplaceStrategy(options Options, strategic *delegatingStrategy) replaceStrategy {
+func createReplaceStrategy(options Options, strategic apply.Strategy) replaceStrategy {
 	return replaceStrategy{
 		strategic,
 		options,

@@ -21,7 +21,7 @@ import (
 	"k8s.io/kubernetes/pkg/kubectl/apply"
 )
 
-func createRetainKeysStrategy(options Options, strategic *delegatingStrategy) retainKeysStrategy {
+func createRetainKeysStrategy(options Options, strategic apply.Strategy) retainKeysStrategy {
 	return retainKeysStrategy{
 		&mergeStrategy{strategic, options},
 		strategic,
@@ -34,7 +34,7 @@ func createRetainKeysStrategy(options Options, strategic *delegatingStrategy) re
 // defined locally and remotely)
 type retainKeysStrategy struct {
 	merge     *mergeStrategy
-	strategic *delegatingStrategy
+	strategic apply.Strategy
 	options   Options
 }
 

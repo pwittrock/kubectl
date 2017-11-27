@@ -25,6 +25,7 @@ type Options struct {
 	// e.g. primitive values, list values with replace strategy, and map values with do
 	// strategy
 	FailOnConflict bool
+	Delegate apply.Strategy
 }
 
 // Create returns a new apply.Visitor for merging multiple objects together

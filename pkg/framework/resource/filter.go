@@ -16,7 +16,12 @@ limitations under the License.
 
 package resource
 
-import "strings"
+import (
+	"fmt"
+	"k8s.io/kubectl/pkg/framework/merge"
+	"k8s.io/kubernetes/pkg/kubectl/apply"
+	"strings"
+)
 
 type Filter interface {
 	Resource(*Resource) bool
@@ -84,4 +89,26 @@ func (a *OrFilter) SubResource(sr *SubResource) bool {
 		}
 	}
 	return false
+}
+
+type FieldFilter struct {
+	EmptyFilter
+	path []string
+}
+
+func NewFieldFilter(path []string) *FieldFilter {
+	return &FieldFilter{EmptyFilter{}, path}
+}
+
+func (f *FieldFilter) Resource(r *Resource) bool {
+	return r.HasField(f.path)
+}
+
+type PrefixStrategy struct {
+	merge.EmptyStrategy
+	prefix string
+}
+
+func (fs *PrefixStrategy) MergePrimitive(element apply.PrimitiveElement) (apply.Result, error) {
+	return apply.Result{MergedResult: fmt.Sprintf("%s%v", fs.prefix, element.GetRemote())}, nil
 }

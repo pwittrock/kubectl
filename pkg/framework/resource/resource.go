@@ -34,6 +34,10 @@ func (r *Resource) HasField(path []string) bool {
 	return hasField(r.Schema, path)
 }
 
+func (sr *Resource) Field(path []string, obj interface{}, fn ObjectFieldFn) (interface{}, error) {
+	return setField(sr.Schema, path, obj, fn)
+}
+
 func (r *Resource) APIGroupVersionKind() schema.GroupVersionKind {
 	return r.ApiGroupVersion.WithKind(r.Resource.Kind)
 }
@@ -52,6 +56,10 @@ type SubResource struct {
 
 func (sr *SubResource) HasField(path []string) bool {
 	return hasField(sr.Schema, path)
+}
+
+func (sr *SubResource) Field(path []string, obj interface{}, fn ObjectFieldFn) (interface{}, error) {
+	return setField(sr.Schema, path, obj, fn)
 }
 
 func (r *SubResource) APIGroupVersionKind() schema.GroupVersionKind {

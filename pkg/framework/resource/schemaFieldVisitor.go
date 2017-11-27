@@ -22,23 +22,27 @@ import (
 )
 
 func hasField(sch openapi.Schema, path []string) bool {
-	v := &fieldVisitor{fw.PanicVisitor{}, path, false}
-	sch.Accept(v)
-	return v.found
+	found := false
+	sch.Accept(&schemaFieldVisitor{
+		fw.PanicVisitor{},
+		path,
+		func(openapi.BaseSchema, openapi.Schema) { found = true },
+	})
+	return found
 }
 
-// fieldVisitor walks the openapi schema and registers flags for primitive fields
-type fieldVisitor struct {
+// schemaFieldVisitor walks the openapi schema and registers flags for primitive fields
+type schemaFieldVisitor struct {
 	fw.PanicVisitor
-	path  []string
-	found bool
+	path    []string
+	fieldFn func(openapi.BaseSchema, openapi.Schema)
 }
 
 // VisitKind recurses into certain fields to populate flags
-func (visitor *fieldVisitor) VisitKind(k *openapi.Kind) {
+func (visitor *schemaFieldVisitor) VisitKind(k *openapi.Kind) {
 	if len(visitor.path) == 0 {
 		// Field found
-		visitor.found = true
+		visitor.fieldFn(k.BaseSchema, k)
 		return
 	}
 
@@ -48,38 +52,40 @@ func (visitor *fieldVisitor) VisitKind(k *openapi.Kind) {
 		return
 	}
 
-	// Eat a path element and recurse
+	// Eat a remainingFields element and recurse
 	visitor.path = visitor.path[1:]
 	k.Fields[field].Accept(visitor)
 }
 
 // VisitPrimitive creates a new flag to populate the primitive value
-func (visitor *fieldVisitor) VisitPrimitive(p *openapi.Primitive) {
+func (visitor *schemaFieldVisitor) VisitPrimitive(p *openapi.Primitive) {
 	// At the leaf nodes
-	visitor.found = len(visitor.path) == 0
+	if len(visitor.path) == 0 {
+		visitor.fieldFn(p.BaseSchema, p)
+	}
 }
 
-func (visitor *fieldVisitor) VisitArray(p *openapi.Array) {
+func (visitor *schemaFieldVisitor) VisitArray(p *openapi.Array) {
 	if len(visitor.path) == 0 {
-		visitor.found = true
+		visitor.fieldFn(p.BaseSchema, p)
 		return
 	}
-	// List do not eat a path element
+	// List do not eat a remainingFields element
 	p.SubType.Accept(visitor)
 
 }
 
-func (visitor *fieldVisitor) VisitMap(m *openapi.Map) {
+func (visitor *schemaFieldVisitor) VisitMap(m *openapi.Map) {
 	if len(visitor.path) == 0 {
-		visitor.found = true
+		visitor.fieldFn(m.BaseSchema, m)
 		return
 	}
-	// Maps eat a path element
+	// Maps eat a remainingFields element
 	visitor.path = visitor.path[1:]
 	m.SubType.Accept(visitor)
 }
 
 // VisitReference traverses references
-func (visitor *fieldVisitor) VisitReference(r openapi.Reference) {
+func (visitor *schemaFieldVisitor) VisitReference(r openapi.Reference) {
 	r.SubSchema().Accept(visitor)
 }
