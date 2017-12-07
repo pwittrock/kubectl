@@ -15,7 +15,9 @@
 package main
 
 import "k8s.io/kubectl/cmd/kubefield/cmd"
+import _ "k8s.io/kubectl/cmd/kubefield/cmd/clear"
 import _ "k8s.io/kubectl/cmd/kubefield/cmd/get"
+import _ "k8s.io/kubectl/cmd/kubefield/cmd/patch"
 import _ "k8s.io/kubectl/cmd/kubefield/cmd/prefix"
 import _ "k8s.io/kubectl/cmd/kubefield/cmd/set"
 

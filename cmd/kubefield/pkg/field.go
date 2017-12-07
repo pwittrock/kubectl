@@ -16,7 +16,25 @@ limitations under the License.
 
 package pkg
 
+import "github.com/spf13/cobra"
+
 type FieldDef struct {
 	Name string
 	Path []string
+}
+
+type Path struct {
+	Name      string
+	InputPath []string
+	path      func() []string
+}
+
+func (fd *Path) SetFlags(cmd *cobra.Command) {
+	for _, p := range fd.InputPath {
+
+	}
+}
+
+func (fd *Path) GetPath() []string {
+	return fd.path()
 }
