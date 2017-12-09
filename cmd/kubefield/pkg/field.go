@@ -30,9 +30,9 @@ type Path struct {
 }
 
 func (fd *Path) SetFlags(cmd *cobra.Command) {
-	for _, p := range fd.InputPath {
-
-	}
+	//for _, p := range fd.InputPath {
+	//
+	//}
 }
 
 func (fd *Path) GetPath() []string {

@@ -22,14 +22,16 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/spf13/pflag"
+	//"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-var logFlushFreq = pflag.Duration("log-flush-frequency", 5*time.Second, "Maximum number of seconds between log flushes")
+var logFlushFreq *time.Duration // pflag.Duration("log-flush-frequency", 5*time.Second, "Maximum number of seconds between log flushes")
 
 // TODO(thockin): This is temporary until we agree on log dirs and put those into each cmd.
 func init() {
+    d := 5*time.Second
+    logFlushFreq = &d
 	flag.Set("logtostderr", "true")
 }
 

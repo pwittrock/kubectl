@@ -28,7 +28,7 @@ var cfgFile string
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "kubefield",
-	Short: "",
+	Short: "kubefield gets and sets fields on object config",
 	Long:  ``,
 }
 

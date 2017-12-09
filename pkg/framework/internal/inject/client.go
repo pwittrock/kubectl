@@ -25,6 +25,7 @@ import (
 
 	"strings"
 
+	"fmt"
 	"github.com/googleapis/gnostic/OpenAPIv2"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
@@ -67,6 +68,23 @@ func getStringFlag(name, defaultVal string) string {
 		}
 	}
 	return value
+}
+
+func (c *Factory) Version() (string, error) {
+	v, err := c.discovery.ServerVersion()
+	if err != nil {
+		return "", err
+	}
+
+	switch v.Minor {
+	case "7":
+		return "1.7", nil
+	case "8":
+		return "1.8", nil
+	default:
+		return "", fmt.Errorf("server version unknown")
+
+	}
 }
 
 func (c *Factory) inject() *rest.Config {

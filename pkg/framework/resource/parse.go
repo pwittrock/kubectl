@@ -19,7 +19,7 @@ package resource
 import (
 	"strings"
 
-	"github.com/golang/glog"
+	//"github.com/golang/glog"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
@@ -133,13 +133,13 @@ func (p *Parser) indexResources(gvs []*v1.APIResourceList) (
 
 			name, isResource := p.resource(&r)
 			if !isResource {
-				glog.Infof("skipping non-resource %s %s/%s/%s", r.Name, group, version, r.Kind)
+				//glog.Infof("skipping non-resource %s %s/%s/%s", r.Name, group, version, r.Kind)
 				continue
 			}
 
 			openapiSchema, found := p.getOpenAPI(group, version, r.Kind)
 			if !found {
-				glog.Infof("openapi schema not found for %s/%s/%s", group, version, r.Kind)
+				//glog.Infof("openapi schema not found for %s/%s/%s", group, version, r.Kind)
 				continue
 			}
 
