@@ -57,14 +57,13 @@ func Run() error {
 	}
 
 	var cmd *cobra.Command
-
 	switch version {
 	case "1.7":
 		cmd = version17.Cmd()
 	case "1.8":
 		cmd = version18.Cmd()
 	default:
-		panic(fmt.Errorf("Version %s not supported", version))
+		cmd = version18.Cmd()
 	}
 
 	cmd.Use = "ctl"
