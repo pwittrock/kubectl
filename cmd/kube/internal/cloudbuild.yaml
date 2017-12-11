@@ -1,4 +1,8 @@
 steps:
+- name: 'ubuntu'
+  args: ['pwd']
+- name: 'ubuntu'
+  args: ['ls']
 - name: 'gcr.io/cloud-builders/go'
-  args: ['build', '-o', 'kube', 'main.go']
+  args: ['build', '-o', 'kube', 'cmd/kube/internal/main.go']
   env: ['PROJECT_ROOT=k8s.io']
