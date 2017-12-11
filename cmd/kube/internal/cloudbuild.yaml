@@ -1,0 +1,4 @@
+steps:
+- name: 'gcr.io/cloud-builders/go'
+  args: ['build', 'main.go', '-o', 'kube']
+  env: ['PROJECT_ROOT=hello']
