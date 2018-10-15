@@ -1,0 +1,86 @@
+# Set Label: "cli.sigs.k8s.io/cli.v1alpha1.CommandList": ""
+# Set Annotation: "cli.sigs.k8s.io/cli.v1alpha1.CommandList": '<json>'
+---
+items:
+- command:
+    use: "get-random"
+    short: Get a random resource.
+    long: Get a random resource.
+    example: |
+        kubectl get-random
+    flags:
+    - name: kind
+      type: String
+      stringValue: "Pod"
+      description: kind of resource to get
+  requests:
+  - serviceName: "nginx"
+    serviceNamespace: "default"
+    protocol: "http"
+    operation: "Get"
+    saveResponseValues:
+    - name: responsename
+      jsonPath: "{.hello}"
+  output: "{{index .Responses.Strings \"responsename\"}}\n"
+- command:
+    use: "post-random"
+    short: Get a random resource.
+    long: Get a random resource.
+    example: |
+        kubectl get-random
+    flags:
+    - name: kind
+      type: String
+      stringValue: "Pod"
+      description: kind of resource to get
+    flags:
+    - name: name
+      type: String
+      stringValue: ""
+      description: deployment name
+    - name: image
+      type: String
+      stringValue: ""
+      description: Image name to run.
+    - name: replicas
+      type: Int
+      intValue: 1
+      description: Image name to run.
+    - name: namespace
+      type: String
+      stringValue: "default"
+      description: deployment namespace
+  requests:
+  - serviceName: "nginx"
+    serviceNamespace: "default"
+    protocol: "http"
+    operation: "Post"
+    paramsTemplates:
+      name: '{{index .Flags.Strings "name"}}'
+      namespace: '{{index .Flags.Strings "namespace"}}'
+    bodyTemplate: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: {{index .Flags.Strings "name"}}
+        namespace: {{index .Flags.Strings "namespace"}}
+        labels:
+          app: nginx
+      spec:
+        replicas: {{index .Flags.Ints "replicas"}}
+        selector:
+          matchLabels:
+            app: {{index .Flags.Strings "name"}}
+        template:
+          metadata:
+            labels:
+              app: {{index .Flags.Strings "name"}}
+          spec:
+            containers:
+            - name: {{index .Flags.Strings "name"}}
+              image: {{index .Flags.Strings "image"}}
+    saveResponseValues:
+    - name: responsename
+      jsonPath: "{.hello}"
+  output: "{{index .Responses.Strings \"responsename\"}}\n"
+
