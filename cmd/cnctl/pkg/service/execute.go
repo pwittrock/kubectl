@@ -33,7 +33,7 @@ import (
 
 // ParseCommand parses the dynamic command into a cobra command
 func ParseCommand(config *rest.Config,
-	cmd *v1alpha1.ServicCommand, k *kubernetes.Clientset) *cobra.Command {
+	cmd v1alpha1.ServicCommand, k *kubernetes.Clientset) *cobra.Command {
 	cbra, f := pkgcobra.ParseCommand(&cmd.Command)
 	values := pkgcobra.Values{Flags: f}
 
@@ -74,7 +74,7 @@ func doRequest(
 	serviceRequest v1alpha1.ServiceRequest,
 	k *kubernetes.Clientset) (map[string]interface{}, error) {
 
-	name := fmt.Sprintf("%s:%s:%s/proxy/",
+	name := fmt.Sprintf("%s:%s:%s",
 		serviceRequest.Protocol,
 		serviceRequest.ServiceName,
 		serviceRequest.Port)
@@ -98,9 +98,8 @@ func doRequest(
 		Namespace(serviceRequest.ServiceNamespace).
 		Resource("services").
 		Suffix(name).
-		Body(body)
-
-	// TODO: Add RequestURI
+		Body(body).
+		Suffix("proxy", string(url))
 
 	// Add Params
 	for k, v := range params {

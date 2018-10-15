@@ -58,7 +58,7 @@ func main() {
 		log.Fatalf("could not list service commands", err)
 	}
 	for _, cmd := range scmds.Items {
-		pkgcobra.AddTo(rootCmd, service.ParseCommand(config, &cmd, k), cmd.Command)
+		pkgcobra.AddTo(rootCmd, service.ParseCommand(config, cmd, k), cmd.Command)
 	}
 
 	// Execute Cobra

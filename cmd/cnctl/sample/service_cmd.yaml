@@ -27,7 +27,7 @@ items:
     short: Get a random resource.
     long: Get a random resource.
     example: |
-        kubectl get-random
+        kubectl post-random
     flags:
     - name: kind
       type: String
@@ -55,6 +55,7 @@ items:
     serviceNamespace: "default"
     protocol: "http"
     operation: "Post"
+    urlTemplate: '{{index .Flags.Strings "namespace"}}/{{index .Flags.Strings "name"}}'
     paramsTemplates:
       name: '{{index .Flags.Strings "name"}}'
       namespace: '{{index .Flags.Strings "namespace"}}'
