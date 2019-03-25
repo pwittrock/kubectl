@@ -110,6 +110,19 @@ deployment.apps/nginx-deployment   3         3         3            3           
 ```
 {% endmethod %}
 
+## Creating a Resource from a Kustomization in a Git Repo
+
+{% method %}
+
+Create or Update Kubernetes Resources from a Kustomization Directory in a Git Repository.
+
+**Note:** Will clone the repository locally using `git`.
+
+{% sample lang="yaml" %}
+```bash
+kubectl apply -k https://github.com/kubernetes/kubectl/docs/book/examples/nginx-kustomize/
+```
+
 ## Generating a Config from a Command
 
 {% method %}
